@@ -99,9 +99,88 @@ export async function POST(req: Request) {
                 dbUserId ?? requestUserId ?? userId ?? authUserId;
               if (!resolvedUserId)
                 return { success: false, error: "User ID missing" };
+              // Ensure a user exists, even for guest ids
+              await prisma.user.upsert({
+                where: { id: resolvedUserId },
+                update: {},
+                create: {
+                  id: resolvedUserId,
+                  phone_number: `guest:${resolvedUserId}`,
+                  totalPunyaPoints: 0,
+                },
+              });
+
+              // Normalize natural phrases to canonical action names
+              const normalize = (s: string) => s.toLowerCase().trim();
+              const phrase = normalize(actionName);
+              const aliases: Record<string, string[]> = {
+                use_public_transport_or_erickshaw: [
+                  "e rickshaw",
+                  "e-rickshaw",
+                  "erickshaw",
+                  "auto",
+                  "rickshaw",
+                  "public transport",
+                  "bus",
+                  "e rikshaw",
+                  "e rick saw",
+                ],
+                refill_water_station_qr: [
+                  "refill water",
+                  "water station",
+                  "bottle refill",
+                  "scan water qr",
+                ],
+                dispose_waste_qr: [
+                  "dispose waste",
+                  "throw garbage",
+                  "smart bin",
+                  "bin qr",
+                  "trash",
+                ],
+                report_hygiene_issue_photo: [
+                  "report hygiene",
+                  "unclean toilet",
+                  "overflowing bin",
+                  "hygiene photo",
+                  "dirty",
+                ],
+                verify_hygiene_issue_resolved: [
+                  "verify resolved",
+                  "issue fixed",
+                  "cleaned now",
+                ],
+                attend_cultural_event_checkin: [
+                  "attend cultural",
+                  "lecture",
+                  "performance",
+                  "cultural event",
+                  "check in",
+                ],
+                help_lost_pilgrim_sos: [
+                  "help lost pilgrim",
+                  "sos",
+                  "connect authorities",
+                ],
+                share_cultural_story_featured: [
+                  "share story",
+                  "cultural story",
+                  "photo featured",
+                ],
+              };
+              let canonical = phrase;
+              // direct pass-through if user already sent canonical id
+              if (!Object.keys(aliases).includes(phrase)) {
+                for (const [key, vals] of Object.entries(aliases)) {
+                  if (vals.some((v) => phrase.includes(v))) {
+                    canonical = key;
+                    break;
+                  }
+                }
+              }
               return databaseTool.awardPunyaPoints.execute({
                 userId: resolvedUserId,
-                actionName,
+                actionName: canonical,
                 location,
                 imageUrl,
               });
@@ -118,6 +197,15 @@ export async function POST(req: Request) {
                   dbUserId ?? requestUserId ?? userId ?? authUserId;
                 if (!resolvedUserId)
                   return { success: false, error: "User ID missing" };
+                await prisma.user.upsert({
+                  where: { id: resolvedUserId },
+                  update: {},
+                  create: {
+                    id: resolvedUserId,
+                    phone_number: `guest:${resolvedUserId}`,
+                    totalPunyaPoints: 0,
+                  },
+                });
                 const user = await prisma.user.findUnique({
                   where: { id: resolvedUserId },
                   select: { totalPunyaPoints: true, name: true },

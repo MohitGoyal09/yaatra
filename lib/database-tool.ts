@@ -32,12 +32,32 @@ export const databaseTool = {
       imageUrl?: string;
     }) => {
       try {
-        const action = await prisma.action.findUnique({
+        let action = await prisma.action.findUnique({
           where: { action_name: actionName },
         });
 
         if (!action) {
-          return { success: false, error: "Action not found." };
+          // Fallback: create the action if it's one of our known canonical names
+          const defaultPoints: Record<string, number> = {
+            dispose_waste_qr: 20,
+            report_hygiene_issue_photo: 30,
+            verify_hygiene_issue_resolved: 50,
+            refill_water_station_qr: 25,
+            use_public_transport_or_erickshaw: 15,
+            attend_cultural_event_checkin: 10,
+            help_lost_pilgrim_sos: 40,
+            share_cultural_story_featured: 15,
+          };
+          if (actionName in defaultPoints) {
+            action = await prisma.action.create({
+              data: {
+                action_name: actionName,
+                point_value: defaultPoints[actionName],
+              },
+            });
+          } else {
+            return { success: false, error: "Action not found." };
+          }
         }
 
         const updatedUser = await prisma.user.update({

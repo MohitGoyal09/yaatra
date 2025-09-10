@@ -90,7 +90,6 @@ export function HeroSection({
           </div>
 
           {/* Image with Glow */}
-          
         </div>
       </div>
     </section>

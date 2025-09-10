@@ -26,7 +26,7 @@ export function AppNavbar() {
         <div className="flex h-14 items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Link href="/" className="text-base font-semibold">
-              YAAT
+              YaatraSarthi
             </Link>
             <NavigationMenu viewport={false}>
               <NavigationMenuList>

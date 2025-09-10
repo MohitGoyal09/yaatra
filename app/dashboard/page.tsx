@@ -65,28 +65,28 @@ export default async function DashboardPage() {
     );
   }
 
-  // Ensure an app user exists for this Clerk user
+  // Ensure an app user exists keyed by stable identity (email/phone)
   const clerk = await currentUser();
-  const phoneNumber =
-    clerk?.phoneNumbers?.[0]?.phoneNumber || `clerk:${userId}`;
-  const fullName = clerk?.fullName || clerk?.username || undefined;
-  await prisma.user.upsert({
-    where: { id: userId },
+  const identityKey =
+    clerk?.primaryEmailAddress?.emailAddress ||
+    clerk?.phoneNumbers?.[0]?.phoneNumber ||
+    userId;
+  const ensuredUser = await prisma.user.upsert({
+    where: { phone_number: identityKey },
     update: {},
     create: {
-      id: userId,
-      phone_number: phoneNumber,
-      name: fullName,
+      phone_number: identityKey,
+      name: clerk?.fullName || clerk?.username || undefined,
       language_preference: "English",
       totalPunyaPoints: 0,
     },
   });
 
   const [profileRes, achievementsRes, fullUser] = await Promise.all([
-    databaseTool.getUserProfile.execute({ userId }),
-    databaseTool.getUserAchievements.execute({ userId }),
+    databaseTool.getUserProfile.execute({ userId: ensuredUser.id }),
+    databaseTool.getUserAchievements.execute({ userId: ensuredUser.id }),
     prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: ensuredUser.id },
       include: {
         userActions: {
           include: { action: true },

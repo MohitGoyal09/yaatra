@@ -280,10 +280,19 @@ export const PromptInput = ({
         });
         return;
       }
-      setItems((prev) => {
+
+      const readAsDataUrl = (file: File) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+
+      (async () => {
         const capacity =
           typeof maxFiles === "number"
-            ? Math.max(0, maxFiles - prev.length)
+            ? Math.max(0, maxFiles - items.length)
             : undefined;
         const capped =
           typeof capacity === "number" ? sized.slice(0, capacity) : sized;
@@ -293,41 +302,33 @@ export const PromptInput = ({
             message: "Too many files. Some were not added.",
           });
         }
-        const next: (FileUIPart & { id: string })[] = [];
-        for (const file of capped) {
-          next.push({
+        const dataUrls = await Promise.all(capped.map(readAsDataUrl));
+        const next: (FileUIPart & { id: string })[] = dataUrls.map(
+          (url, idx) => ({
             id: nanoid(),
             type: "file",
-            url: URL.createObjectURL(file),
-            mediaType: file.type,
-            filename: file.name,
-          });
-        }
-        return prev.concat(next);
+            url, // data: URL works server-side; blob: URLs do not
+            mediaType: capped[idx].type,
+            filename: capped[idx].name,
+          })
+        );
+        setItems((prev) => prev.concat(next));
+      })().catch(() => {
+        onError?.({
+          code: "accept",
+          message: "Failed to read selected files.",
+        });
       });
     },
-    [matchesAccept, maxFiles, maxFileSize, onError]
+    [matchesAccept, maxFiles, maxFileSize, onError, items.length]
   );
 
   const remove = useCallback((id: string) => {
-    setItems((prev) => {
-      const found = prev.find((file) => file.id === id);
-      if (found?.url) {
-        URL.revokeObjectURL(found.url);
-      }
-      return prev.filter((file) => file.id !== id);
-    });
+    setItems((prev) => prev.filter((file) => file.id !== id));
   }, []);
 
   const clear = useCallback(() => {
-    setItems((prev) => {
-      for (const file of prev) {
-        if (file.url) {
-          URL.revokeObjectURL(file.url);
-        }
-      }
-      return [];
-    });
+    setItems(() => []);
   }, []);
 
   // Note: File input cannot be programmatically set for security reasons
@@ -542,7 +543,7 @@ export const PromptInputButton = ({
   ...props
 }: PromptInputButtonProps) => {
   const newSize =
-    (size ?? Children.count(props.children) > 1) ? "default" : "icon";
+    size ?? Children.count(props.children) > 1 ? "default" : "icon";
 
   return (
     <Button

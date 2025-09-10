@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AppNavbar } from "@/components/ui/app-navbar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,12 +26,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="min-h-screen bg-gradient-to-b from-muted to-background bg-[radial-gradient(ellipse_at_top,_rgba(0,0,0,0.06)_1px,_transparent_0)] [background-size:12px_12px] dark:bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08)_1px,_transparent_0)]">
+              <AppNavbar />
+              <main className="mx-auto max-w-6xl px-4">{children}</main>
+            </div>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

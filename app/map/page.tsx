@@ -78,6 +78,7 @@ export default function LiveKarmaMap() {
   // State management for hotspot data points
   const [hotspots, setHotspots] = useState<PunyaHotspot[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
 
   // Ensure component only renders on client side
   useEffect(() => {
@@ -149,7 +150,65 @@ export default function LiveKarmaMap() {
   }
 
   return (
-    <div className="h-screen w-full">
+    <div className="h-screen w-full relative">
+      {/* Legend Toggle Button */}
+      <button
+        onClick={() => setShowLegend(!showLegend)}
+        className="absolute top-4 right-4 z-[1001] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-2 hover:bg-white transition-colors"
+        title={showLegend ? "Hide Legend" : "Show Legend"}
+      >
+        {showLegend ? "📋" : "❓"}
+      </button>
+
+      {/* Legend/Reference */}
+      {showLegend && (
+        <div className="absolute top-16 right-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4 max-w-xs">
+          <h3 className="font-semibold text-gray-800 mb-3 text-sm">
+            Karma Intensity Legend
+          </h3>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-sm">
+                🔥
+              </div>
+              <span className="text-gray-700">High (80-100)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm">
+                ⚡
+              </div>
+              <span className="text-gray-700">Medium-High (60-79)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">
+                💚
+              </div>
+              <span className="text-gray-700">Medium (40-59)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
+                ✨
+              </div>
+              <span className="text-gray-700">Low-Medium (20-39)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm">
+                💫
+              </div>
+              <span className="text-gray-700">Low (0-19)</span>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="text-xs text-gray-600">
+              <strong>Total Events:</strong> {hotspots.length}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Click markers for details
+            </p>
+          </div>
+        </div>
+      )}
+
       <MapContainer
         center={[23.1793, 75.7873]} // Ujjain coordinates
         zoom={14}

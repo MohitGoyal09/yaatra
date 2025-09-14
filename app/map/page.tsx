@@ -5,9 +5,6 @@ import dynamicImport from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Disable static generation for this page since it requires client-side rendering
-export const dynamic = "force-dynamic";
-
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamicImport(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -80,7 +77,7 @@ const createKarmaIcon = (intensity: number) => {
   });
 };
 
-export default function LiveKarmaMap() {
+function LiveKarmaMapComponent() {
   // State management for hotspot data points
   const [hotspots, setHotspots] = useState<PunyaHotspot[]>([]);
   const [isClient, setIsClient] = useState(false);
@@ -268,3 +265,13 @@ export default function LiveKarmaMap() {
     </div>
   );
 }
+
+// Export the component wrapped in dynamic import to prevent SSR
+export default dynamicImport(() => Promise.resolve(LiveKarmaMapComponent), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen w-full flex items-center justify-center bg-gray-100">
+      <div className="text-lg text-gray-600">Loading map...</div>
+    </div>
+  ),
+});

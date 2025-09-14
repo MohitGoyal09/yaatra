@@ -1,33 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Disable static generation for this page since it requires client-side rendering
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
 // Dynamically import map components to avoid SSR issues
-const MapContainer = dynamic(
+const MapContainer = dynamicImport(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
 );
 
-const TileLayer = dynamic(
+const TileLayer = dynamicImport(
   () => import("react-leaflet").then((mod) => mod.TileLayer),
   { ssr: false }
 );
 
-const Marker = dynamic(
+const Marker = dynamicImport(
   () => import("react-leaflet").then((mod) => mod.Marker),
   { ssr: false }
 );
 
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
-  ssr: false,
-});
+const Popup = dynamicImport(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  {
+    ssr: false,
+  }
+);
 
 // TypeScript interface for karma event data points
 interface PunyaHotspot {

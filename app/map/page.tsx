@@ -5,6 +5,10 @@ import dynamic from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+// Disable static generation for this page since it requires client-side rendering
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -84,6 +88,11 @@ export default function LiveKarmaMap() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Prevent server-side rendering completely
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   // Real-time data fetching with Server-Sent Events
   useEffect(() => {

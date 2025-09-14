@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         const intensity = Math.random() * 100; // Random intensity 0-100
 
         const karmaEvent = {
+          id: `karma-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           lat: parseFloat(lat.toFixed(6)),
           lng: parseFloat(lng.toFixed(6)),
           intensity: Math.round(intensity),

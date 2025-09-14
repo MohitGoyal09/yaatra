@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Dynamically import map components to avoid SSR issues
@@ -15,18 +16,63 @@ const TileLayer = dynamic(
   { ssr: false }
 );
 
-const HeatmapLayer = dynamic(
-  () =>
-    import("react-leaflet-heatmap-layer-v3").then((mod) => mod.HeatmapLayer),
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
   { ssr: false }
 );
 
-// TypeScript interface for hotspot data points
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
+
+// TypeScript interface for karma event data points
 interface PunyaHotspot {
+  id: string;
   lat: number;
   lng: number;
   intensity: number;
+  action: string;
+  timestamp: string;
 }
+
+// Create custom SVG-based marker icon
+const createKarmaIcon = (intensity: number) => {
+  // Choose symbol based on intensity
+  let symbol = "🌟"; // Default star
+  let color = "#10b981"; // Default green
+
+  if (intensity >= 80) {
+    symbol = "🔥"; // Fire for high intensity
+    color = "#ef4444"; // Red
+  } else if (intensity >= 60) {
+    symbol = "⚡"; // Lightning for medium-high
+    color = "#f59e0b"; // Orange
+  } else if (intensity >= 40) {
+    symbol = "💚"; // Heart for medium
+    color = "#22c55e"; // Green
+  } else if (intensity >= 20) {
+    symbol = "✨"; // Sparkles for low-medium
+    color = "#3b82f6"; // Blue
+  } else {
+    symbol = "💫"; // Dizzy star for low
+    color = "#8b5cf6"; // Purple
+  }
+
+  const svgIcon = `
+    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="14" fill="${color}" stroke="white" stroke-width="2"/>
+      <text x="16" y="20" text-anchor="middle" font-size="16" fill="white">${symbol}</text>
+    </svg>
+  `;
+
+  return L.divIcon({
+    html: svgIcon,
+    className: "custom-karma-marker",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16],
+  });
+};
 
 export default function LiveKarmaMap() {
   // State management for hotspot data points
@@ -49,11 +95,30 @@ export default function LiveKarmaMap() {
         // Parse incoming data as JSON
         const data = JSON.parse(event.data);
 
+        // Skip connection messages and validate coordinates
+        if (data.type === "connection" || !data.lat || !data.lng) {
+          return;
+        }
+
+        // Validate that lat and lng are valid numbers
+        const lat = parseFloat(data.lat);
+        const lng = parseFloat(data.lng);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn("Invalid coordinates received:", data);
+          return;
+        }
+
         // Create new PunyaHotspot object from parsed data
         const newHotspot: PunyaHotspot = {
-          lat: data.lat,
-          lng: data.lng,
-          intensity: data.intensity,
+          id:
+            data.id ||
+            `karma-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          lat: lat,
+          lng: lng,
+          intensity: data.intensity || 50,
+          action: data.action || "Positive action",
+          timestamp: data.timestamp || new Date().toISOString(),
         };
 
         // Update state by appending new hotspot to existing array
@@ -96,17 +161,39 @@ export default function LiveKarmaMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        {/* Conditionally render heatmap layer only if hotspots exist */}
-        {hotspots.length > 0 && (
-          <HeatmapLayer
-            points={hotspots}
-            latitudeExtractor={(point: PunyaHotspot) => point.lat}
-            longitudeExtractor={(point: PunyaHotspot) => point.lng}
-            intensityExtractor={(point: PunyaHotspot) => point.intensity}
-            radius={25}
-            blur={15}
-          />
-        )}
+        {/* Render individual karma event markers */}
+        {hotspots
+          .filter(
+            (hotspot) =>
+              hotspot.lat != null &&
+              hotspot.lng != null &&
+              !isNaN(hotspot.lat) &&
+              !isNaN(hotspot.lng)
+          )
+          .map((hotspot) => (
+            <Marker
+              key={hotspot.id}
+              position={[hotspot.lat, hotspot.lng]}
+              icon={createKarmaIcon(hotspot.intensity)}
+            >
+              <Popup>
+                <div className="p-2">
+                  <h3 className="font-semibold text-green-600 mb-2">
+                    🌟 Karma Event
+                  </h3>
+                  <p className="text-sm mb-1">
+                    <strong>Action:</strong> {hotspot.action}
+                  </p>
+                  <p className="text-sm mb-1">
+                    <strong>Intensity:</strong> {hotspot.intensity}/100
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(hotspot.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
     </div>
   );

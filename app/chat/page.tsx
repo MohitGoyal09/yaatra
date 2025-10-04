@@ -29,10 +29,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
-import {
-  Actions,
-  Action,
-} from "@/components/ai-elements/actions";
+import { Actions, Action } from "@/components/ai-elements/actions";
 import { Response } from "@/components/ai-elements/response";
 import { GlobeIcon, RefreshCcwIcon, CopyIcon } from "lucide-react";
 import {
@@ -47,6 +44,7 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import { Loader } from "@/components/ai-elements/loader";
+import VoiceWidget from "@/components/voice-widget";
 
 const models = [
   { name: "Gemini 2.5 Flash", value: "google/gemini-2.5-flash" },
@@ -93,9 +91,9 @@ export default function ChatBotDemo() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 relative size-full h-screen">
-      <div className="flex flex-col h-full">
-        <Conversation className="h-full">
+    <div className="max-w-4xl mx-auto p-6 relative pb-32">
+      <div className="space-y-4">
+        <Conversation>
           <ConversationContent>
             {messages.map((message) => (
               <div key={message.id}>
@@ -112,126 +110,149 @@ export default function ChatBotDemo() {
                       />
                       {message.parts
                         .filter((part) => part.type === "source-url")
-                        .map((part: { type: string; url?: string }, i: number) => (
-                          <SourcesContent key={`${message.id}-${i}`}>
-                            <Source
-                              key={`${message.id}-${i}`}
-                              href={part.url}
-                              title={part.url}
-                            />
-                          </SourcesContent>
-                        ))}
+                        .map(
+                          (part: { type: string; url?: string }, i: number) => (
+                            <SourcesContent key={`${message.id}-${i}`}>
+                              <Source
+                                key={`${message.id}-${i}`}
+                                href={part.url}
+                                title={part.url}
+                              />
+                            </SourcesContent>
+                          )
+                        )}
                     </Sources>
                   )}
 
-                {message.parts.map((part: { type: string; text?: string; url?: string }, i: number) => {
-                  switch (part.type) {
-                    case "text":
-                      return (
-                        <Fragment key={`${message.id}-${i}`}>
-                          <Message from={message.role}>
-                            <MessageContent>
-                              <Response>{part.text}</Response>
-                            </MessageContent>
-                          </Message>
-                          {message.role === "assistant" &&
-                            message.id === messages.at(-1)?.id && (
-                              <Actions className="mt-2">
-                                <Action
-                                  onClick={() =>
-                                    setMessages((prev) => prev.slice(0, -1))
-                                  }
-                                  label="Retry"
-                                >
-                                  <RefreshCcwIcon className="size-3" />
-                                </Action>
-                                <Action
-                                  onClick={() =>
-                                    navigator.clipboard.writeText(part.text || "")
-                                  }
-                                  label="Copy"
-                                >
-                                  <CopyIcon className="size-3" />
-                                </Action>
-                              </Actions>
-                            )}
-                        </Fragment>
-                      );
-                    case "reasoning":
-                      return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={
-                            status === "streaming" &&
-                            i === message.parts.length - 1 &&
-                            message.id === messages.at(-1)?.id
-                          }
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text || ""}</ReasoningContent>
-                        </Reasoning>
-                      );
-                    default:
-                      return null;
+                {message.parts.map(
+                  (
+                    part: { type: string; text?: string; url?: string },
+                    i: number
+                  ) => {
+                    switch (part.type) {
+                      case "text":
+                        return (
+                          <Fragment key={`${message.id}-${i}`}>
+                            <Message from={message.role}>
+                              <MessageContent>
+                                <Response>{part.text}</Response>
+                              </MessageContent>
+                            </Message>
+                            {message.role === "assistant" &&
+                              message.id === messages.at(-1)?.id && (
+                                <Actions className="mt-2">
+                                  <Action
+                                    onClick={() =>
+                                      setMessages((prev) => prev.slice(0, -1))
+                                    }
+                                    label="Retry"
+                                  >
+                                    <RefreshCcwIcon className="size-3" />
+                                  </Action>
+                                  <Action
+                                    onClick={() =>
+                                      navigator.clipboard.writeText(
+                                        part.text || ""
+                                      )
+                                    }
+                                    label="Copy"
+                                  >
+                                    <CopyIcon className="size-3" />
+                                  </Action>
+                                </Actions>
+                              )}
+                          </Fragment>
+                        );
+                      case "reasoning":
+                        return (
+                          <Reasoning
+                            key={`${message.id}-${i}`}
+                            className="w-full"
+                            isStreaming={
+                              status === "streaming" &&
+                              i === message.parts.length - 1 &&
+                              message.id === messages.at(-1)?.id
+                            }
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent>
+                              {part.text || ""}
+                            </ReasoningContent>
+                          </Reasoning>
+                        );
+                      default:
+                        return null;
+                    }
                   }
-                })}
+                )}
               </div>
             ))}
             {status === "submitted" && <Loader />}
           </ConversationContent>
-          <ConversationScrollButton />
         </Conversation>
 
-        <PromptInput
-          onSubmit={handleSubmit}
-          className="mt-4"
-          globalDrop
-          multiple
-        >
-          <PromptInputBody>
-            <PromptInputAttachments>
-              {(attachment) => <PromptInputAttachment data={attachment} />}
-            </PromptInputAttachments>
-            <PromptInputTextarea
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-            />
-          </PromptInputBody>
-          <PromptInputToolbar>
-            <PromptInputTools>
-              <PromptInputActionMenu>
-                <PromptInputActionMenuTrigger />
-                <PromptInputActionMenuContent>
-                  <PromptInputActionAddAttachments />
-                </PromptInputActionMenuContent>
-              </PromptInputActionMenu>
-              <PromptInputButton
-                variant={webSearch ? "default" : "ghost"}
-                onClick={() => setWebSearch(!webSearch)}
-              >
-                <GlobeIcon size={16} />
-                <span>Search</span>
-              </PromptInputButton>
-              <PromptInputModelSelect
-                onValueChange={(value) => setModel(value)}
-                value={model}
-              >
-                <PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectValue />
-                </PromptInputModelSelectTrigger>
-                <PromptInputModelSelectContent>
-                  {models.map((m) => (
-                    <PromptInputModelSelectItem key={m.value} value={m.value}>
-                      {m.name}
-                    </PromptInputModelSelectItem>
-                  ))}
-                </PromptInputModelSelectContent>
-              </PromptInputModelSelect>
-            </PromptInputTools>
-            <PromptInputSubmit disabled={!input && !status} status={status} />
-          </PromptInputToolbar>
-        </PromptInput>
+        <div className="fixed bottom-0 left-0 right-0 bg-white   p-4 z-50">
+          <div className="max-w-4xl mx-auto">
+            <PromptInput onSubmit={handleSubmit} globalDrop multiple>
+              <PromptInputBody>
+                <PromptInputAttachments>
+                  {(attachment) => <PromptInputAttachment data={attachment} />}
+                </PromptInputAttachments>
+                <PromptInputTextarea
+                  onChange={(e) => setInput(e.target.value)}
+                  value={input}
+                />
+              </PromptInputBody>
+              <PromptInputToolbar>
+                <PromptInputTools>
+                  <PromptInputActionMenu>
+                    <PromptInputActionMenuTrigger />
+                    <PromptInputActionMenuContent>
+                      <PromptInputActionAddAttachments />
+                    </PromptInputActionMenuContent>
+                  </PromptInputActionMenu>
+                  <PromptInputButton
+                    variant={webSearch ? "default" : "ghost"}
+                    onClick={() => setWebSearch(!webSearch)}
+                  >
+                    <GlobeIcon size={16} />
+                    <span>Search</span>
+                  </PromptInputButton>
+                  <PromptInputModelSelect
+                    onValueChange={(value) => setModel(value)}
+                    value={model}
+                  >
+                    <PromptInputModelSelectTrigger>
+                      <PromptInputModelSelectValue />
+                    </PromptInputModelSelectTrigger>
+                    <PromptInputModelSelectContent>
+                      {models.map((m) => (
+                        <PromptInputModelSelectItem
+                          key={m.value}
+                          value={m.value}
+                        >
+                          {m.name}
+                        </PromptInputModelSelectItem>
+                      ))}
+                    </PromptInputModelSelectContent>
+                  </PromptInputModelSelect>
+                </PromptInputTools>
+                <div className="flex items-center gap-2">
+                  <VoiceWidget
+                    apiKey={process.env.NEXT_PUBLIC_VAPI_API_KEY || ""}
+                    assistantId={
+                      process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""
+                    }
+                  />
+                  <PromptInputSubmit
+                    disabled={!input && !status}
+                    status={status}
+                  />
+                </div>
+              </PromptInputToolbar>
+            </PromptInput>
+          </div>
+        </div>
       </div>
     </div>
   );

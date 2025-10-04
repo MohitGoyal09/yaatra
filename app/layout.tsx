@@ -33,11 +33,11 @@ export default function RootLayout({
         >
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="white"
             enableSystem
             disableTransitionOnChange
           >
-            <div className="min-h-screen bg-gradient-to-b from-muted to-background bg-[radial-gradient(ellipse_at_top,_rgba(0,0,0,0.06)_1px,_transparent_0)] [background-size:12px_12px] dark:bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.08)_1px,_transparent_0)]">
+            <div className="min-h-screen">
               <AppNavbar />
               <main className="mx-auto max-w-6xl px-4">{children}</main>
             </div>

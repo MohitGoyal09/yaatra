@@ -8,7 +8,8 @@
     "start": "next start",
     "db:seed": "tsx prisma/seed.ts",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:setup": "node setup-database.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.13",
@@ -32,6 +33,7 @@
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@tabler/icons-react": "^3.34.1",
     "@tanstack/react-table": "^8.21.3",
+    "@vapi-ai/client-sdk-react": "^0.0.12",
     "@vapi-ai/web": "^2.4.0",
     "ai": "^5.0.39",
     "class-variance-authority": "^0.7.1",

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppNavbar } from "@/components/ui/app-navbar";
+import { VapiWidgetComponent } from "@/components/vapi-widget";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,6 +41,22 @@ export default function RootLayout({
             <div className="min-h-screen">
               <AppNavbar />
               <main className="mx-auto max-w-6xl px-4">{children}</main>
+
+              {/* Vapi Widget - will only render if environment variables are set */}
+              <VapiWidgetComponent
+                publicKey={process.env.NEXT_PUBLIC_VAPI_API_KEY || ""}
+                assistantId={process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""}
+                mode="chat"
+                theme="light"
+                position="bottom-right"
+                size="full"
+                accentColor="#14B8A6"
+                buttonBaseColor="#000000"
+                buttonAccentColor="#FFFFFF"
+                mainLabel="Talk with Sarthi"
+                emptyChatMessage="Namaste! I'm Sarthi, your spiritual journey companion. How can I help you explore Ujjain today?"
+                emptyVoiceMessage="Click to start a voice conversation with your spiritual guide"
+              />
             </div>
           </ThemeProvider>
         </body>

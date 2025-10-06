@@ -15,12 +15,18 @@ datasource db {
 }
 
 model User {
-  id                String       @id @default(cuid())
-  phone_number      String       @unique
-  name              String?
+  id                  String          @id @default(cuid())
+  phone_number        String          @unique
+  name                String?
   language_preference String?
-  totalPunyaPoints  Int          @default(0)
-  userActions       UserAction[]
+  totalPunyaPoints    Int             @default(0)
+  userActions         UserAction[]
+  socialShares        SocialShare[]
+  socialPosts         SocialPost[]
+  postLikes           PostLike[]
+  postComments        PostComment[]
+  postShares          PostShare[]
+  lostFoundItems      LostFoundItem[]
 }
 
 model Action {
@@ -31,13 +37,101 @@ model Action {
 }
 
 model UserAction {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  action    Action   @relation(fields: [actionId], references: [id])
-  actionId  String
-  timestamp DateTime @default(now())
+  id                String   @id @default(cuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  action            Action   @relation(fields: [actionId], references: [id])
+  actionId          String
+  timestamp         DateTime @default(now())
   location_geopoint Json?
-  status    String   @default("verified")
-  image_url String?
+  status            String   @default("verified")
+  image_url         String?
+}
+
+model SocialShare {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id])
+  userId           String
+  achievement_type String // 'found_person', 'leaderboard', 'event', 'task', 'donation', 'milestone'
+  platform         String // 'web_share', 'whatsapp', 'twitter', 'facebook', 'clipboard'
+  shared_at        DateTime @default(now())
+  points_awarded   Int      @default(10)
+  template_used    String?
+  content_preview  String? // Store a preview of what was shared
+}
+
+model SocialPost {
+  id         String        @id @default(cuid())
+  user       User          @relation(fields: [userId], references: [id])
+  userId     String
+  content    String
+  image_url  String?
+  post_type  String        @default("general") // 'general', 'achievement', 'seva', 'event'
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  likes      PostLike[]
+  comments   PostComment[]
+  shares     PostShare[]
+  hashtags   String[]      @default([])
+  location   Json? // Store location data if available
+  is_public  Boolean       @default(true)
+}
+
+model PostLike {
+  id         String     @id @default(cuid())
+  post       SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String
+  created_at DateTime   @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostComment {
+  id         String     @id @default(cuid())
+  post       SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String
+  content    String
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+}
+
+model PostShare {
+  id         String     @id @default(cuid())
+  post       SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String
+  platform   String // 'internal', 'whatsapp', 'twitter', 'facebook', etc.
+  created_at DateTime   @default(now())
+
+  @@unique([postId, userId, platform])
+}
+
+model LostFoundItem {
+  id                   String    @id @default(cuid())
+  user                 User      @relation(fields: [userId], references: [id])
+  userId               String
+  type                 String // 'lost' or 'found'
+  category             String // 'person', 'pet', 'item', 'document', 'other'
+  name                 String
+  description          String
+  location             String
+  contact_name         String
+  contact_phone        String
+  contact_email        String?
+  contact_address      String?
+  image_url            String?
+  status               String    @default("active") // 'active', 'resolved', 'closed'
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+  resolved_at          DateTime?
+  location_coordinates Json? // Store lat/lng if available
+
+  @@index([type, status])
+  @@index([category])
+  @@index([location])
 }

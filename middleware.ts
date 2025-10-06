@@ -1,6 +1,22 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import createIntlMiddleware from "next-intl/middleware";
 
-export default clerkMiddleware();
+const intlMiddleware = createIntlMiddleware({
+  locales: ["en", "hi", "gu", "mr"],
+  defaultLocale: "hi", // Hindi as primary for Simhastha
+  localeDetection: true,
+  pathnames: {
+    "/": "/",
+    "/chat": "/chat",
+    "/leaderboard": "/leaderboard",
+    "/map": "/map",
+    "/dashboard": "/dashboard",
+  },
+});
+
+export default clerkMiddleware((auth, req) => {
+  return intlMiddleware(req);
+});
 
 export const config = {
   matcher: [

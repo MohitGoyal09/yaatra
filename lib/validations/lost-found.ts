@@ -84,12 +84,10 @@ export const lostFoundItemSchema = z.object({
 export type LostFoundItemFormData = z.infer<typeof lostFoundItemSchema>;
 
 export const searchSchema = z.object({
-  search: z.string().default(""),
-  type: z.enum(["all", "lost", "found"]).default("all"),
-  category: z
-    .enum(["all", "person", "pet", "item", "document", "other"])
-    .default("all"),
-  location: z.string().default(""),
+  search: z.string(),
+  type: z.enum(["all", "lost", "found"]),
+  category: z.enum(["all", "person", "pet", "item", "document", "other"]),
+  location: z.string(),
 });
 
 export type SearchFormData = z.infer<typeof searchSchema>;

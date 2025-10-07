@@ -51,6 +51,7 @@
       opacity: 0;
       transform: scale(0.95);
     }
+
     100% {
       opacity: 1;
       transform: scale(1);
@@ -62,32 +63,39 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
   @keyframes appear-zoom {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
     }
-  100% {
-    opacity: 1;
-    transform: scale(1);
+
+    100% {
+      opacity: 1;
+      transform: scale(1);
     }
   }
+
   @keyframes appear {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
     }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
-  --font-serif: "Merriweather", serif;
+
+  --font-serif: "Merriweather",
+  serif;
   --radius: 0.5rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
@@ -232,6 +240,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
@@ -242,19 +251,835 @@
   .delay-100 {
     animation-delay: 100ms;
   }
+
   .delay-300 {
     animation-delay: 300ms;
   }
+
   .delay-700 {
     animation-delay: 700ms;
   }
+
   .delay-1000 {
     animation-delay: 1000ms;
   }
+
   .max-w-container {
     max-width: 1200px;
   }
+
   .fade-bottom {
     background: linear-gradient(to bottom, transparent 0%, var(--background) 100%);
+  }
+
+  /* Scrolling animation for gallery */
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-scroll {
+    animation: scroll 20s linear infinite;
+  }
+
+  /* Hide scrollbar for mobile gallery */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Smooth transitions */
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Parallax and reveal effects */
+  .parallax-bg {
+    will-change: transform;
+  }
+
+  .reveal-window {
+    will-change: clip-path, transform;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Performance optimization for animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Live Darshan Animation Effects */
+  
+  /* Particle Effects */
+  @keyframes prayer-float {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.5);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-10px) scale(1.1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-30px) scale(0.8);
+    }
+  }
+
+  @keyframes lotus-fall {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px) rotate(0deg) scale(0.5);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(10px) rotate(180deg) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(40px) rotate(360deg) scale(0.3);
+    }
+  }
+
+  @keyframes bell-ring {
+    0%, 100% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(-10deg) scale(1.1);
+    }
+    75% {
+      transform: rotate(10deg) scale(1.1);
+    }
+  }
+
+  @keyframes sparkle-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-15px) scale(1.2);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.5);
+    }
+  }
+
+  @keyframes gentle-float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(5deg);
+    }
+  }
+
+  @keyframes lotus-petal-fall {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100vh) rotate(720deg);
+    }
+  }
+
+  @keyframes punya-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(0px) scale(0.5);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-20px) scale(1.2);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.8);
+    }
+  }
+
+  @keyframes spiritual-pulse {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Floating Leaves Animation */
+  @keyframes floating-leaves {
+    0% {
+      transform: translateY(0px) rotate(0deg) translateX(0px);
+    }
+    25% {
+      transform: translateY(-10px) rotate(5deg) translateX(5px);
+    }
+    50% {
+      transform: translateY(-5px) rotate(-3deg) translateX(-3px);
+    }
+    75% {
+      transform: translateY(-15px) rotate(8deg) translateX(8px);
+    }
+    100% {
+      transform: translateY(0px) rotate(0deg) translateX(0px);
+    }
+  }
+
+  /* Diya Flame Animation */
+  @keyframes diya-flame {
+    0%, 100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 0.8;
+    }
+    25% {
+      transform: scale(1.1) rotate(2deg);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(0.9) rotate(-1deg);
+      opacity: 0.9;
+    }
+    75% {
+      transform: scale(1.05) rotate(1deg);
+      opacity: 0.95;
+    }
+  }
+
+  /* Bell Swing Animation */
+  @keyframes bell-swing {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-15deg);
+    }
+    75% {
+      transform: rotate(15deg);
+    }
+  }
+
+  /* Conch Shell Glow */
+  @keyframes conch-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      transform: scale(1.05);
+    }
+  }
+
+  /* Marigold Bloom */
+  @keyframes marigold-bloom {
+    0% {
+      transform: scale(0.8) rotate(0deg);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.1) rotate(180deg);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1) rotate(360deg);
+      opacity: 0.9;
+    }
+  }
+
+  /* Tulsi Leaves Rustle */
+  @keyframes tulsi-rustle {
+    0%, 100% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(3deg) scale(1.02);
+    }
+    75% {
+      transform: rotate(-3deg) scale(0.98);
+    }
+  }
+
+  /* Pooja Thali Shine */
+  @keyframes thali-shine {
+    0% {
+      filter: brightness(1);
+      transform: scale(1);
+    }
+    50% {
+      filter: brightness(1.3);
+      transform: scale(1.02);
+    }
+    100% {
+      filter: brightness(1);
+      transform: scale(1);
+    }
+  }
+
+  /* Button Hover Effects */
+  @keyframes button-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  /* Video Overlay Pulse */
+  @keyframes video-pulse {
+    0%, 100% {
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  /* Apply animations to classes */
+  .prayer-float {
+    animation: prayer-float 3s ease-out forwards;
+  }
+
+  .lotus-fall {
+    animation: lotus-fall 4s ease-out forwards;
+  }
+
+  .bell-ring {
+    animation: bell-ring 0.5s ease-in-out;
+  }
+
+  .sparkle-rise {
+    animation: sparkle-rise 3s ease-out forwards;
+  }
+
+  .gentle-float {
+    animation: gentle-float 4s ease-in-out infinite;
+  }
+
+  .lotus-petal-fall {
+    animation: lotus-petal-fall 4s linear forwards;
+  }
+
+  .punya-rise {
+    animation: punya-rise 2s ease-out forwards;
+  }
+
+  .spiritual-pulse {
+    animation: spiritual-pulse 3s ease-in-out infinite;
+  }
+
+  .floating-leaves {
+    animation: floating-leaves 6s ease-in-out infinite;
+  }
+
+  .diya-flame {
+    animation: diya-flame 2s ease-in-out infinite;
+  }
+
+  .bell-swing {
+    animation: bell-swing 1s ease-in-out;
+  }
+
+  .conch-glow {
+    animation: conch-glow 3s ease-in-out infinite;
+  }
+
+  .marigold-bloom {
+    animation: marigold-bloom 4s ease-in-out infinite;
+  }
+
+  .tulsi-rustle {
+    animation: tulsi-rustle 3s ease-in-out infinite;
+  }
+
+  .thali-shine {
+    animation: thali-shine 2s ease-in-out infinite;
+  }
+
+  .button-glow:hover {
+    animation: button-glow 1s ease-in-out infinite;
+  }
+
+  .video-pulse {
+    animation: video-pulse 4s ease-in-out infinite;
+  }
+
+  /* Interactive Button Styles */
+  .devotional-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .devotional-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .devotional-button:hover::before {
+    left: 100%;
+  }
+
+  .devotional-button:active {
+    transform: scale(0.95);
+  }
+
+  /* Particle Container */
+  .particle-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Floating Elements */
+  .floating-element {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Video Overlay Effects */
+  .video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Utility Classes */
+  .border-none {
+    border: none;
+  }
+
+  /* Simple Particle Animations */
+  @keyframes leaves-fall {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100vh) rotate(720deg);
+    }
+  }
+
+  @keyframes agarbati-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.5);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-100vh) scale(1.2);
+    }
+  }
+
+  @keyframes devotional-float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translateY(-20px) rotate(180deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes ambient-float {
+    0%, 100% {
+      transform: translateY(0px) translateX(0px);
+      opacity: 0.3;
+    }
+    25% {
+      transform: translateY(-10px) translateX(5px);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translateY(-5px) translateX(-3px);
+      opacity: 0.4;
+    }
+    75% {
+      transform: translateY(-15px) translateX(8px);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes celebration-burst {
+    0% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.5) rotate(180deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.5) rotate(360deg);
+    }
+  }
+
+  .animate-leaves-fall {
+    animation: leaves-fall 6s linear forwards;
+  }
+
+  .animate-agarbati-rise {
+    animation: agarbati-rise 5s linear forwards;
+  }
+
+  .animate-devotional-float {
+    animation: devotional-float 4s ease-in-out infinite;
+  }
+
+  .animate-ambient-float {
+    animation: ambient-float 8s ease-in-out infinite;
+  }
+
+  .animate-celebration-burst {
+    animation: celebration-burst 3s ease-out forwards;
+  }
+
+  /* Devotional SVG Particle Animations */
+  .devotional-svg-particle {
+    position: absolute;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+    animation-fill-mode: forwards;
+    will-change: transform, opacity;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+  }
+
+  /* Diya Animation - Floating flame effect */
+  @keyframes diya-float {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(30px) scale(0.3) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-10px) scale(1) rotate(15deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateY(-30px) scale(1.1) rotate(-10deg);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-60px) scale(0.9) rotate(5deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-100px) scale(0.5) rotate(0deg);
+    }
+  }
+
+  .diya-animation {
+    animation-name: diya-float;
+  }
+
+  /* Agarbati Animation - Rising smoke effect */
+  @keyframes agarbati-rise {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(50px) scale(0.3);
+    }
+    15% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) translateY(20px) scale(0.8);
+    }
+    30% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-10px) scale(1);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-80px) scale(0.9);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-150px) scale(0.4);
+    }
+  }
+
+  .agarbati-animation {
+    animation-name: agarbati-rise;
+  }
+
+  /* Bell Animation - Ringing and floating */
+  @keyframes bell-ring-float {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(40px) scale(0.3) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0px) scale(1.1) rotate(20deg);
+    }
+    35% {
+      transform: translate(-50%, -50%) translateY(-5px) scale(1) rotate(-15deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateY(0px) scale(1.1) rotate(10deg);
+    }
+    65% {
+      transform: translate(-50%, -50%) translateY(-5px) scale(1) rotate(-5deg);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-40px) scale(0.9) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-80px) scale(0.5);
+    }
+  }
+
+  .bell-animation {
+    animation-name: bell-ring-float;
+  }
+
+  /* Conch Animation - Spiral and glow */
+  @keyframes conch-spiral {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(30px) scale(0.3) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-10px) scale(1) rotate(180deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateY(-40px) scale(1.1) rotate(360deg);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-70px) scale(0.9) rotate(540deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-120px) scale(0.4) rotate(720deg);
+    }
+  }
+
+  .conch-animation {
+    animation-name: conch-spiral;
+  }
+
+  /* Tulsi Animation - Gentle leaf floating */
+  @keyframes tulsi-float {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(40px) scale(0.3) rotate(0deg);
+    }
+    25% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0px) scale(1) rotate(45deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateY(-20px) scale(1.05) rotate(90deg);
+    }
+    75% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-50px) scale(0.95) rotate(135deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-90px) scale(0.5) rotate(180deg);
+    }
+  }
+
+  .tulsi-animation {
+    animation-name: tulsi-float;
+  }
+
+  /* Marigold Animation - Blooming effect */
+  @keyframes marigold-bloom {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(30px) scale(0.2);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-10px) scale(1.2);
+    }
+    40% {
+      transform: translate(-50%, -50%) translateY(-30px) scale(1.1);
+    }
+    60% {
+      transform: translate(-50%, -50%) translateY(-50px) scale(1);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-80px) scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-120px) scale(0.4);
+    }
+  }
+
+  .marigold-animation {
+    animation-name: marigold-bloom;
+  }
+
+  /* Thali Animation - Presenting offering */
+  @keyframes thali-present {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(50px) scale(0.3);
+    }
+    25% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0px) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateY(-10px) scale(1.05);
+    }
+    75% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-30px) scale(0.95);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-60px) scale(0.5);
+    }
+  }
+
+  .thali-animation {
+    animation-name: thali-present;
+  }
+
+  /* Lotus Animation - Blooming and floating */
+  @keyframes lotus-bloom {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(40px) scale(0.2) rotate(0deg);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-10px) scale(1.1) rotate(90deg);
+    }
+    40% {
+      transform: translate(-50%, -50%) translateY(-30px) scale(1.2) rotate(180deg);
+    }
+    60% {
+      transform: translate(-50%, -50%) translateY(-50px) scale(1) rotate(270deg);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(-80px) scale(0.8) rotate(360deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-120px) scale(0.4) rotate(450deg);
+    }
+  }
+
+  .lotus-animation {
+    animation-name: lotus-bloom;
+  }
+
+  /* Home page specific styles */
+  .hero-bg-image {
+    background-image: url('https://www.i4utravels.com/wp-content/uploads/2021/03/1572436388_madhya_pradesh_web.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  .history-bg-image {
+    background-image: url('https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop');
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Transform utilities for parallax effects */
+  .parallax-transform-1 {
+    transform: translateY(var(--scroll-y-1));
+    will-change: transform;
+  }
+
+  .parallax-transform-2 {
+    transform: translateY(var(--scroll-y-2));
+    will-change: transform;
+  }
+
+  .parallax-transform-3 {
+    transform: translateY(var(--scroll-y-3));
+    will-change: transform;
+  }
+
+  .parallax-transform-4 {
+    transform: translateY(var(--scroll-y-4));
+    will-change: transform;
+  }
+
+  .parallax-transform-5 {
+    transform: translateY(var(--scroll-y-5));
+    will-change: transform;
+  }
+
+  /* Opacity utilities for fade effects */
+  .fade-opacity-1 {
+    opacity: var(--opacity-1);
+    will-change: opacity;
+  }
+
+  .fade-opacity-2 {
+    opacity: var(--opacity-2);
+    will-change: opacity;
+  }
+
+  /* Clip path utilities */
+  .clip-path-reveal {
+    clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%);
+    will-change: clip-path;
   }
 }

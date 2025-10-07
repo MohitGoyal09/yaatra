@@ -137,6 +137,22 @@ export default async function DashboardPage() {
       ? "Seva Seeker"
       : "Seva Starter";
   
+  const getNextRankInfo = (points: number) => {
+    if (points < 100) return { nextRank: "Seva Seeker", needed: 100, progress: (points / 100) * 100 };
+    if (points < 500) return { nextRank: "Dharma Steward", needed: 500, progress: ((points - 100) / 400) * 100 };
+    if (points < 1000) return { nextRank: "Spiritual Master", needed: 1000, progress: ((points - 500) / 500) * 100 };
+    return { nextRank: "Enlightened Soul", needed: 2000, progress: ((points - 1000) / 1000) * 100 };
+  };
+
+  const nextRankInfo = getNextRankInfo(totalPoints);
+
+  const chartData = [
+    { category: "Hygiene & Health", value: categoryToPoints.hygiene, fill: "hsl(var(--chart-1))" },
+    { category: "Eco-Friendliness", value: categoryToPoints.eco, fill: "hsl(var(--chart-2))" },
+    { category: "Cultural & Community", value: categoryToPoints.cultural, fill: "hsl(var(--chart-3))" },
+    { category: "Other", value: categoryToPoints.other, fill: "hsl(var(--chart-4))" },
+  ].filter(item => item.value > 0);
+
   const serviceCategories = [
     { title: 'Hygiene & Health', count: categoryToCount.hygiene, color: 'text-blue-500' },
     { title: 'Eco-Friendliness', count: categoryToCount.eco, color: 'text-green-500' },
@@ -163,6 +179,9 @@ export default async function DashboardPage() {
     statsCards,
     recentActivities,
     rankTitle,
+    nextRankInfo,
+    chartData,
+    totalPoints,
   };
 
   return <DashboardClient {...dashboardProps} />;

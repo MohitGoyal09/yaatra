@@ -1,6 +1,9 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Star, TrendingUp, Droplet, Leaf, Heart, Map, Camera, QrCode, MapPin } from 'lucide-react';
+import { ChevronRight, Star, TrendingUp, Droplet, Leaf, Heart, Map, Camera, QrCode, MapPin, Trophy, Target } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { DonutChart } from "@/components/ui/donut-chart";
+import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
 
 interface DashboardClientProps {
   user: any;
@@ -20,6 +23,17 @@ interface DashboardClientProps {
     points: number;
   }>;
   rankTitle: string;
+  nextRankInfo: {
+    nextRank: string;
+    needed: number;
+    progress: number;
+  };
+  chartData: Array<{
+    category: string;
+    value: number;
+    fill: string;
+  }>;
+  totalPoints: number;
 }
 
 const DashboardClient = ({ 
@@ -28,7 +42,10 @@ const DashboardClient = ({
   serviceCategories, 
   statsCards, 
   recentActivities,
-  rankTitle 
+  rankTitle,
+  nextRankInfo,
+  chartData,
+  totalPoints
 }: DashboardClientProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -81,41 +98,94 @@ const DashboardClient = ({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* User Welcome Section */}
+        {/* User Welcome Section with Progress */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Welcome back, {user.name || 'Pilgrim'}!
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Your current rank: <span className="font-semibold text-primary">{rankTitle}</span>
-          </p>
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Current Rank:</span>
+              <span className="font-semibold text-primary">{rankTitle}</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Progress to {nextRankInfo.nextRank}</span>
+                <span className="font-medium">{totalPoints}/{nextRankInfo.needed} points</span>
+              </div>
+              <Progress value={nextRankInfo.progress} className="h-3" />
+              <p className="text-xs text-muted-foreground text-center">
+                {nextRankInfo.needed - totalPoints} points to next rank
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Hero Section with Carousel and Service Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2">
-            <div className="bg-card rounded-lg shadow-lg overflow-hidden">
-              <div className="relative h-96">
-                {carouselImages.map((img, idx) => (
-                  <img key={idx} src={img} alt={`Slide ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
-                ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                  <div className="p-8 text-white">
-                    <h2 className="text-3xl font-bold mb-2">Experience Divine Journey</h2>
-                    <p className="text-lg">Your spiritual companion in Ujjain</p>
-                  </div>
+        {/* Enhanced Stats Grid with Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Statistics Cards */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {statsCards.slice(0, 3).map((stat: any, idx: number) => (
+              <div key={idx} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
+                <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
+                <p className="text-3xl font-bold">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Donut Chart */}
+          <div className="bg-card rounded-lg shadow-lg p-6 border">
+            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center">
+              <Trophy className="h-5 w-5 mr-2 text-primary" />
+              Points Distribution
+            </h3>
+            {chartData.length > 0 ? (
+              <DonutChart
+                data={chartData}
+                category="category"
+                value="value"
+                className="h-40"
+                showTooltip={true}
+              />
+            ) : (
+              <div className="h-40 flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Start earning points to see distribution</p>
                 </div>
-                <div className="absolute bottom-4 right-4 flex space-x-2">
-                  {carouselImages.map((_, idx) => (
-                    <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`} />
-                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Leaderboard and Service Categories */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Leaderboard Snapshot */}
+          <div className="lg:col-span-2">
+            <div className="bg-card rounded-lg shadow-lg border">
+              <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
+                <h3 className="text-xl font-bold flex items-center">
+                  <Trophy className="h-5 w-5 mr-2" />
+                  Community Leaderboard
+                </h3>
+              </div>
+              <div className="p-6">
+                <LeaderboardSnapshot limit={5} />
+                <div className="mt-4 text-center">
+                  <a 
+                    href="/leaderboard" 
+                    className="inline-flex items-center text-primary hover:text-primary/80 font-semibold transition-colors"
+                  >
+                    View Full Leaderboard
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Service Categories */}
           <div className="lg:col-span-1">
             <div className="bg-card rounded-lg shadow-lg">
               <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
@@ -139,6 +209,36 @@ const DashboardClient = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Hero Carousel */}
+        <div className="bg-card rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="relative h-96">
+            {carouselImages.map((img, idx) => (
+              <img key={idx} src={img} alt={`Slide ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+              <div className="p-8 text-white">
+                <h2 className="text-3xl font-bold mb-2">Experience Divine Journey</h2>
+                <p className="text-lg">Your spiritual companion in Ujjain</p>
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4 flex space-x-2">
+              {carouselImages.map((_, idx) => (
+                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {statsCards.slice(3).map((stat: any, idx: number) => (
+            <div key={idx + 3} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
+              <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
+              <p className="text-3xl font-bold">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* About Section */}
@@ -167,16 +267,6 @@ const DashboardClient = ({
               <p className="text-muted-foreground">For Pilgrims</p>
             </div>
           </div>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {statsCards.map((stat: any, idx: number) => (
-            <div key={idx} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
-              <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
-              <p className="text-3xl font-bold">{stat.value}</p>
-            </div>
-          ))}
         </div>
 
         {/* How to Navigate - Flow Chart */}
@@ -239,24 +329,32 @@ const DashboardClient = ({
               <TrendingUp size={24} />
             </div>
             <div className="p-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Action</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-foreground">Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentActivities.map((activity: any, idx: number) => (
-                      <tr key={idx} className="border-t border-border">
-                        <td className="px-4 py-3 text-foreground">{activity.action}</td>
-                        <td className="px-4 py-3 text-right font-semibold text-green-600">+{activity.points}</td>
+              {recentActivities.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Action</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-foreground">Points</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {recentActivities.map((activity: any, idx: number) => (
+                        <tr key={idx} className="border-t border-border">
+                          <td className="px-4 py-3 text-foreground">{activity.action}</td>
+                          <td className="px-4 py-3 text-right font-semibold text-green-600">+{activity.points}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">No activities yet</p>
+                  <p className="text-sm">Start your spiritual journey to see your progress here</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -278,47 +376,8 @@ const DashboardClient = ({
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-3xl font-bold text-foreground text-center mb-8">What Pilgrims Say</h2>
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-purple-900 rounded-2xl p-8">
-              <div className="flex justify-center mb-4">
-                {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                  <Star key={i} className="text-yellow-400 fill-current" size={24} />
-                ))}
-              </div>
-              <p className="text-xl text-foreground text-center mb-6 italic">
-                "{testimonials[currentTestimonial].text}"
-              </p>
-              <div className="text-center">
-                <p className="font-bold text-lg text-foreground">{testimonials[currentTestimonial].name}</p>
-                <p className="text-muted-foreground">{testimonials[currentTestimonial].location}</p>
-              </div>
-              <div className="flex justify-center mt-6 space-x-2">
-                {testimonials.map((_, idx) => (
-                  <button key={idx} onClick={() => setCurrentTestimonial(idx)} className={`w-3 h-3 rounded-full transition-colors ${idx === currentTestimonial ? 'bg-primary' : 'bg-muted'}`} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* History of Ujjain */}
-        <div className="bg-card rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-foreground text-center mb-8">History of Ujjain</h2>
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 rounded-2xl p-8">
-            <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              Ujjain, one of the seven sacred cities (Sapta Puri) in Hinduism, holds a significant place in Indian history and spirituality. Known as Avantika in ancient times, it was the capital of the Avanti Kingdom and a major center of learning and culture.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              The city is home to the revered Mahakaleshwar Temple, one of the twelve Jyotirlingas, where Lord Shiva is worshipped in his fierce manifestation. Ujjain is also famous for hosting the Kumbh Mela every twelve years, where millions of devotees gather to take a holy dip in the Shipra River.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Rich in astronomical heritage, Ujjain was once the prime meridian for Indian astronomers. The legacy of great scholars like Kalidasa and Brahmagupta adds to its cultural significance, making it a vibrant pilgrimage destination that blends ancient traditions with modern facilities.
-            </p>
-          </div>
-        </div>
+        
       </main>
 
       {/* Footer */}

@@ -68,9 +68,9 @@ export function CrimeReportForm({
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isValid },
+    formState: { errors, isValid }
   } = useForm<CrimeReportFormData>({
-    resolver: zodResolver(crimeReportSchema),
+    resolver: zodResolver(crimeReportSchema) as any,
     defaultValues: {
       crime_type: initialData?.crime_type || "theft",
       severity: initialData?.severity || "medium",
@@ -188,7 +188,7 @@ export function CrimeReportForm({
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setValue("imageFile", file);
+      // setValue("imageFile", file); // Remove this line, as "imageFile" is not a valid field name
 
       // Create preview URL
       const reader = new FileReader();
@@ -202,7 +202,7 @@ export function CrimeReportForm({
   const removeImage = () => {
     setSelectedFile(null);
     setImagePreview(null);
-    setValue("imageFile", undefined);
+    // setValue("imageFile", undefined); // Remove this line, as "imageFile" is not a valid field name
     setValue("imageUrl", "");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -552,9 +552,6 @@ export function CrimeReportForm({
             </div>
 
             {/* Error Messages */}
-            {errors.imageFile && (
-              <p className="text-sm text-red-500">{errors.imageFile.message}</p>
-            )}
             {errors.imageUrl && (
               <p className="text-sm text-red-500">{errors.imageUrl.message}</p>
             )}

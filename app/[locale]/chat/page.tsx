@@ -191,6 +191,38 @@ export default function ChatBotDemo() {
           </ConversationContent>
         </Conversation>
 
+        {/* Suggested Questions */}
+        {messages.length === 0 && (
+          <div className="max-w-4xl mx-auto mb-4">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                Suggested questions to get started:
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {[
+                  "What are the best temples to visit in Ujjain?",
+                  "How can I earn Punya Points during my visit?",
+                  "Tell me about the history of Mahakaleshwar Temple",
+                  "What are the must-try local foods in Ujjain?",
+                  "How do I report a lost item in Ujjain?",
+                  "What are the best times to visit the ghats?",
+                ].map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setInput(question);
+                      handleSubmit({ text: question, files: [] });
+                    }}
+                    className="text-left p-3 rounded-md border bg-background hover:bg-accent transition-colors text-sm"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="fixed bottom-0 left-0 right-0   p-4 z-50">
           <div className="max-w-4xl mx-auto">
             <PromptInput onSubmit={handleSubmit} globalDrop multiple>

@@ -183,8 +183,11 @@ export function SocialFeed({
 
       {/* Posts Feed */}
       <div className="space-y-4">
-        {posts.map((post) => (
-          <Card key={post.id} className="hover:shadow-md transition-shadow">
+        {posts.map((post, index) => (
+          <Card
+            key={`${post.id}-${index}`}
+            className="hover:shadow-md transition-shadow"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">

@@ -79,7 +79,14 @@ export function useRealtimePosts(
   }, [fetchPosts]);
 
   const addNewPost = useCallback((post: Post) => {
-    setPosts((prev) => [post, ...prev]);
+    setPosts((prev) => {
+      // Check if post already exists to prevent duplicates
+      const exists = prev.some((p) => p.id === post.id);
+      if (exists) {
+        return prev;
+      }
+      return [post, ...prev];
+    });
   }, []);
 
   const updatePost = useCallback((postId: string, updates: Partial<Post>) => {
@@ -109,7 +116,18 @@ export function useRealtimePosts(
           );
 
           if (newPosts.length > 0) {
-            setPosts((prev) => [...newPosts, ...prev]);
+            setPosts((prev) => {
+              // Filter out any posts that already exist to prevent duplicates
+              const existingIds = new Set(prev.map((post) => post.id));
+              const uniqueNewPosts = newPosts.filter(
+                (post) => !existingIds.has(post.id)
+              );
+
+              if (uniqueNewPosts.length > 0) {
+                return [...uniqueNewPosts, ...prev];
+              }
+              return prev;
+            });
             setLastUpdate(new Date());
           }
         }

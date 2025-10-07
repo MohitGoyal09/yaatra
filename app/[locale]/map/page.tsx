@@ -172,7 +172,9 @@ function LiveKarmaMapComponent() {
         const newHotspot: PunyaHotspot = {
           id:
             data.id ||
-            `marker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            `${data.type || "marker"}-${Date.now()}-${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
           lat: lat,
           lng: lng,
           type: data.type || "karma",
@@ -196,8 +198,24 @@ function LiveKarmaMapComponent() {
           is_anonymous: data.is_anonymous,
         };
 
-        // Update state by appending new hotspot to existing array
-        setHotspots((current) => [...current, newHotspot]);
+        // Update state by appending new hotspot to existing array, but prevent duplicates
+        setHotspots((current) => {
+          // Check if hotspot with this ID already exists
+          const exists = current.some((h) => h.id === newHotspot.id);
+          if (exists) {
+            return current; // Don't add duplicate
+          }
+
+          // Add new hotspot and limit array size to prevent memory issues
+          const updated = [...current, newHotspot];
+
+          // Keep only the most recent 100 hotspots to prevent memory bloat
+          if (updated.length > 100) {
+            return updated.slice(-100);
+          }
+
+          return updated;
+        });
       } catch (error) {
         console.error("Error parsing SSE data:", error);
       }

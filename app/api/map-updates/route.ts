@@ -18,16 +18,38 @@ export async function GET(request: NextRequest) {
   // Create a readable stream for SSE
   const stream = new ReadableStream({
     start(controller) {
+      let isControllerClosed = false;
+
+      // Helper function to safely enqueue data
+      const safeEnqueue = (data: string) => {
+        if (isControllerClosed || request.signal.aborted) {
+          return false;
+        }
+        try {
+          controller.enqueue(new TextEncoder().encode(data));
+          return true;
+        } catch (error) {
+          console.error("Error enqueueing data:", error);
+          isControllerClosed = true;
+          return false;
+        }
+      };
+
       // Send initial connection message
       const initialMessage = `data: ${JSON.stringify({
         type: "connection",
         message: "Connected to Live Karma Map",
       })}\n\n`;
-      controller.enqueue(new TextEncoder().encode(initialMessage));
+      safeEnqueue(initialMessage);
 
       // Send real data from database
       const sendRealData = async () => {
         try {
+          // Check if controller is still open before proceeding
+          if (request.signal.aborted) {
+            return;
+          }
+
           const prismaClient = prisma.lostFoundItem ? prisma : directPrisma;
 
           // Fetch recent lost/found items
@@ -66,6 +88,8 @@ export async function GET(request: NextRequest) {
 
           // Send lost/found items
           for (const item of lostFoundItems) {
+            if (request.signal.aborted) break;
+
             if (
               item.location_coordinates &&
               typeof item.location_coordinates === "object"
@@ -93,12 +117,16 @@ export async function GET(request: NextRequest) {
               };
 
               const message = `data: ${JSON.stringify(markerData)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(message));
+              if (!safeEnqueue(message)) {
+                break;
+              }
             }
           }
 
           // Send crime reports
           for (const report of crimeReports) {
+            if (request.signal.aborted) break;
+
             if (
               report.location_coordinates &&
               typeof report.location_coordinates === "object"
@@ -126,12 +154,16 @@ export async function GET(request: NextRequest) {
               };
 
               const message = `data: ${JSON.stringify(markerData)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(message));
+              if (!safeEnqueue(message)) {
+                break;
+              }
             }
           }
 
           // Send some simulated karma events for positive actions
           const sendKarmaEvent = () => {
+            if (request.signal.aborted) return;
+
             const lat = 23.1793 + (Math.random() - 0.5) * 0.01;
             const lng = 75.7873 + (Math.random() - 0.5) * 0.01;
             const intensity = Math.random() * 100;
@@ -149,7 +181,7 @@ export async function GET(request: NextRequest) {
             };
 
             const message = `data: ${JSON.stringify(karmaEvent)}\n\n`;
-            controller.enqueue(new TextEncoder().encode(message));
+            safeEnqueue(message);
           };
 
           // Send karma events every 10-15 seconds
@@ -162,6 +194,49 @@ export async function GET(request: NextRequest) {
           request.signal.addEventListener("abort", cleanupKarma);
         } catch (error) {
           console.error("Error fetching real data:", error);
+
+          // Send some fallback simulated data if database fails
+          const sendFallbackData = () => {
+            if (request.signal.aborted) return;
+
+            const fallbackEvents = [
+              {
+                id: `fallback-lost-${Date.now()}`,
+                lat: 23.1793 + (Math.random() - 0.5) * 0.01,
+                lng: 75.7873 + (Math.random() - 0.5) * 0.01,
+                type: "lost_found",
+                subtype: "lost",
+                category: "Electronics",
+                name: "Lost Phone",
+                description: "Black smartphone lost near temple area",
+                contact_name: "Anonymous",
+                contact_phone: "1234567890",
+                created_at: new Date().toISOString(),
+                severity: "medium",
+              },
+              {
+                id: `fallback-found-${Date.now()}`,
+                lat: 23.1793 + (Math.random() - 0.5) * 0.01,
+                lng: 75.7873 + (Math.random() - 0.5) * 0.01,
+                type: "lost_found",
+                subtype: "found",
+                category: "Documents",
+                name: "Found Wallet",
+                description: "Brown leather wallet found at bus stop",
+                contact_name: "Good Samaritan",
+                contact_phone: "0987654321",
+                created_at: new Date().toISOString(),
+                severity: "low",
+              },
+            ];
+
+            fallbackEvents.forEach((event) => {
+              const message = `data: ${JSON.stringify(event)}\n\n`;
+              safeEnqueue(message);
+            });
+          };
+
+          sendFallbackData();
         }
       };
 
@@ -176,7 +251,12 @@ export async function GET(request: NextRequest) {
       // Cleanup function
       const cleanup = () => {
         clearInterval(realDataInterval);
-        controller.close();
+        isControllerClosed = true;
+        try {
+          controller.close();
+        } catch (error) {
+          // Controller might already be closed
+        }
       };
 
       // Handle client disconnect

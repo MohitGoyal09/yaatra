@@ -5,7 +5,6 @@ import { useChat } from "@ai-sdk/react";
 import {
   Conversation,
   ConversationContent,
-  ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import {
@@ -198,7 +197,7 @@ export default function ChatBotDemo() {
               <h3 className="text-sm font-medium text-muted-foreground mb-3">
                 Suggested questions to get started:
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bottom-1 cursor-pointer">
                 {[
                   "What are the best temples to visit in Ujjain?",
                   "How can I earn Punya Points during my visit?",

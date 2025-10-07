@@ -118,9 +118,9 @@ export function useRealtimePosts(
           if (newPosts.length > 0) {
             setPosts((prev) => {
               // Filter out any posts that already exist to prevent duplicates
-              const existingIds = new Set(prev.map((post) => post.id));
+              const existingIds = new Set(prev.map((post: Post) => post.id));
               const uniqueNewPosts = newPosts.filter(
-                (post) => !existingIds.has(post.id)
+                (post: Post) => !existingIds.has(post.id)
               );
 
               if (uniqueNewPosts.length > 0) {

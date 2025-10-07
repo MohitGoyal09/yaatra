@@ -18,6 +18,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Icons } from "@/components/ui/icons";
 
 export function AppNavbar() {
   return (
@@ -25,8 +26,9 @@ export function AppNavbar() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-14 items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-base font-semibold">
-              YaatraSarthi
+            <Link href="/" className="flex items-center gap-2 text-base font-semibold">
+              <Icons.logo className="h-8 w-8" />
+              <span>YaatraSarthi</span>
             </Link>
             <NavigationMenu viewport={false}>
               <NavigationMenuList>

@@ -2,30 +2,54 @@ type IconProps = React.HTMLAttributes<SVGElement>
 
 export const Icons = {
   logo: (props: IconProps) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" {...props}>
-      <rect width="256" height="256" fill="none" />
-      <line
-        x1="208"
-        y1="128"
-        x2="128"
-        y2="208"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="32"
-      />
-      <line
-        x1="192"
-        y1="40"
-        x2="40"
-        y2="192"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="32"
-      />
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{stopColor:"#F5A623", stopOpacity:1}} />
+          <stop offset="50%" style={{stopColor:"#D0743C", stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:"#8B4513", stopOpacity:1}} />
+        </linearGradient>
+        <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style={{stopColor:"#FFFFFF", stopOpacity:1}} />
+          <stop offset="30%" style={{stopColor:"#F8F8FF", stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:"#E6E6FA", stopOpacity:0.8}} />
+        </radialGradient>
+      </defs>
+      
+      {/* Outer crescent shapes forming the U */}
+      <path d="M 60 40 Q 40 20, 20 40 Q 10 60, 20 80 Q 30 100, 50 110 Q 70 120, 90 110 L 90 90 Q 70 100, 50 90 Q 30 80, 30 60 Q 30 40, 50 40 Z" 
+            fill="url(#logoGradient)" opacity="0.9"/>
+      
+      <path d="M 140 40 Q 160 20, 180 40 Q 190 60, 180 80 Q 170 100, 150 110 Q 130 120, 110 110 L 110 90 Q 130 100, 150 90 Q 170 80, 170 60 Q 170 40, 150 40 Z" 
+            fill="url(#logoGradient)" opacity="0.9"/>
+      
+      {/* Central flame/drop shape */}
+      <path d="M 100 60 Q 90 45, 95 35 Q 100 25, 105 35 Q 110 45, 100 60 Q 100 70, 100 60 Z" 
+            fill="url(#centerGradient)" stroke="#8B4513" strokeWidth="1"/>
+      
+      {/* Dharma wheel/chakra at bottom */}
+      <circle cx="100" cy="140" r="35" fill="none" stroke="url(#logoGradient)" strokeWidth="3"/>
+      
+      {/* Spokes of the wheel */}
+      <g stroke="url(#logoGradient)" strokeWidth="2" opacity="0.8">
+        <line x1="100" y1="105" x2="100" y2="175"/>
+        <line x1="125" y1="115" x2="75" y2="165"/>
+        <line x1="135" y1="140" x2="65" y2="140"/>
+        <line x1="125" y1="165" x2="75" y2="115"/>
+        <line x1="100" y1="175" x2="100" y2="105"/>
+        <line x1="75" y1="165" x2="125" y2="115"/>
+        <line x1="65" y1="140" x2="135" y2="140"/>
+        <line x1="75" y1="115" x2="125" y2="165"/>
+      </g>
+      
+      {/* Central hub of wheel */}
+      <circle cx="100" cy="140" r="8" fill="url(#centerGradient)" stroke="#8B4513" strokeWidth="1"/>
+      
+      {/* Decorative dots around the wheel */}
+      <circle cx="100" cy="105" r="3" fill="url(#logoGradient)"/>
+      <circle cx="135" cy="140" r="3" fill="url(#logoGradient)"/>
+      <circle cx="100" cy="175" r="3" fill="url(#logoGradient)"/>
+      <circle cx="65" cy="140" r="3" fill="url(#logoGradient)"/>
     </svg>
   ),
   twitter: (props: IconProps) => (

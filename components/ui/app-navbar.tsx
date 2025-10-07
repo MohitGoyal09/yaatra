@@ -23,6 +23,7 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/chat", label: "Sarthi" },
+  { href: "/live-darshan", label: "🕉️ Live Darshan", highlight: true },
   { href: "/map", label: "Live Karma Map" },
   { href: "/social", label: "Social Feed" },
   { href: "/lost-found", label: "Lost & Found" },
@@ -42,7 +43,11 @@ export function AppNavbar() {
         <NavigationMenuItem key={link.href}>
           <NavigationMenuLink
             asChild
-            className={navigationMenuTriggerStyle()}
+            className={`${navigationMenuTriggerStyle()} ${
+              link.highlight 
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg' 
+                : ''
+            }`}
             onClick={() => setIsOpen(false)} // Close menu on link click (for mobile)
           >
             <Link href={link.href}>{link.label}</Link>

@@ -28,30 +28,50 @@ function categorizeAction(actionName: string): CategoryKey {
 }
 
 async function getCommunityImpact() {
-  const [sumPoints, hygieneReports, lostHelp, wasteLogs] = await Promise.all([
-    prisma.user.aggregate({ _sum: { totalPunyaPoints: true } }),
-    prisma.userAction.count({
-      where: { action: { action_name: "report_hygiene_issue_photo" } },
-    }),
-    prisma.userAction.count({
-      where: { action: { action_name: "help_lost_pilgrim_sos" } },
-    }),
-    prisma.userAction.count({
-      where: { action: { action_name: "dispose_waste_qr" } },
-    }),
-  ]);
+  try {
+    // Add timeout to prevent hanging connections
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Database query timeout")), 5000);
+    });
 
-  return {
-    totalCommunityPoints: sumPoints._sum.totalPunyaPoints ?? 0,
-    wasteLogs,
-    hygieneReports,
-    lostHelp,
-  };
+    const [sumPoints, hygieneReports, lostHelp, wasteLogs] =
+      (await Promise.race([
+        Promise.all([
+          prisma.user.aggregate({ _sum: { totalPunyaPoints: true } }),
+          prisma.userAction.count({
+            where: { action: { action_name: "report_hygiene_issue_photo" } },
+          }),
+          prisma.userAction.count({
+            where: { action: { action_name: "help_lost_pilgrim_sos" } },
+          }),
+          prisma.userAction.count({
+            where: { action: { action_name: "dispose_waste_qr" } },
+          }),
+        ]),
+        timeoutPromise,
+      ])) as any;
+
+    return {
+      totalCommunityPoints: sumPoints._sum.totalPunyaPoints ?? 0,
+      wasteLogs,
+      hygieneReports,
+      lostHelp,
+    };
+  } catch (error) {
+    console.error("Error fetching community impact:", error);
+    // Return default values if database query fails
+    return {
+      totalCommunityPoints: 0,
+      wasteLogs: 0,
+      hygieneReports: 0,
+      lostHelp: 0,
+    };
+  }
 }
 
 export default async function DashboardPage() {
   const { userId } = await auth();
-  
+
   if (!userId) {
     return (
       <div className="p-6 bg-slate-50">
@@ -67,39 +87,95 @@ export default async function DashboardPage() {
     clerk?.primaryEmailAddress?.emailAddress ||
     clerk?.phoneNumbers?.[0]?.phoneNumber ||
     userId;
-    
-  const ensuredUser = await prisma.user.upsert({
-    where: { phone_number: identityKey },
-    update: {},
-    create: {
-      phone_number: identityKey,
-      name: clerk?.fullName || clerk?.username || undefined,
-      language_preference: "English",
-      totalPunyaPoints: 0,
-    },
-  });
 
-  const [profileRes, achievementsRes, fullUser, communityImpact] = await Promise.all([
-    databaseTool.getUserProfile.execute({ userId: ensuredUser.id }),
-    databaseTool.getUserAchievements.execute({ userId: ensuredUser.id }),
-    prisma.user.findUnique({
-      where: { id: ensuredUser.id },
-      include: {
-        userActions: {
-          include: { action: true },
-          orderBy: { timestamp: "desc" },
-        },
+  // Create a mock user object for when database is unavailable
+  const mockUser = {
+    id: userId,
+    phone_number: identityKey,
+    name: clerk?.fullName || clerk?.username || "User",
+    language_preference: "English",
+    totalPunyaPoints: 0,
+    totalActions: 0,
+    recentActions: [],
+  };
+
+  let ensuredUser;
+  try {
+    ensuredUser = await prisma.user.upsert({
+      where: { phone_number: identityKey },
+      update: {},
+      create: {
+        phone_number: identityKey,
+        name: clerk?.fullName || clerk?.username || undefined,
+        language_preference: "English",
+        totalPunyaPoints: 0,
       },
-    }),
-    getCommunityImpact(),
-  ]);
+    });
+  } catch (error) {
+    console.error("Error upserting user:", error);
+    // Use mock user when database is unavailable
+    ensuredUser = mockUser;
+  }
+
+  let profileRes, achievementsRes, fullUser, communityImpact;
+
+  // Check if we're using mock data (database unavailable)
+  const isUsingMockData = ensuredUser === mockUser;
+
+  if (isUsingMockData) {
+    // Skip database queries entirely when using mock data
+    profileRes = { success: true, user: mockUser };
+    achievementsRes = { success: true, achievements: [] };
+    fullUser = { ...mockUser, userActions: [] };
+    communityImpact = {
+      totalCommunityPoints: 0,
+      wasteLogs: 0,
+      hygieneReports: 0,
+      lostHelp: 0,
+    };
+  } else {
+    try {
+      [profileRes, achievementsRes, fullUser, communityImpact] =
+        await Promise.all([
+          databaseTool.getUserProfile.execute({ userId: ensuredUser.id }),
+          databaseTool.getUserAchievements.execute({ userId: ensuredUser.id }),
+          prisma.user.findUnique({
+            where: { id: ensuredUser.id },
+            include: {
+              userActions: {
+                include: { action: true },
+                orderBy: { timestamp: "desc" },
+              },
+            },
+          }),
+          getCommunityImpact(),
+        ]);
+    } catch (error) {
+      console.error("Database connection error:", error);
+      // Use fallback data when database is unavailable
+      profileRes = { success: true, user: mockUser };
+      achievementsRes = { success: true, achievements: [] };
+      fullUser = { ...mockUser, userActions: [] };
+      communityImpact = {
+        totalCommunityPoints: 0,
+        wasteLogs: 0,
+        hygieneReports: 0,
+        lostHelp: 0,
+      };
+    }
+  }
 
   if (!profileRes.success || !profileRes.user || !fullUser) {
-    return (
-      <div className="p-6 bg-slate-50">
-        <p className="text-sm text-destructive">Failed to load profile.</p>
-      </div>
-    );
+    // If we have fallback data, continue with it
+    if (profileRes.user && fullUser) {
+      // Continue with fallback data
+    } else {
+      return (
+        <div className="p-6 bg-slate-50">
+          <p className="text-sm text-destructive">Failed to load profile.</p>
+        </div>
+      );
+    }
   }
 
   const user = profileRes.user;
@@ -120,7 +196,7 @@ export default async function DashboardPage() {
     cultural: 0,
     other: 0,
   };
-  
+
   for (const ua of fullUser.userActions) {
     const key = categorizeAction(ua.action.action_name);
     categoryToPoints[key] += ua.action.point_value;
@@ -136,22 +212,54 @@ export default async function DashboardPage() {
       : totalPoints >= 100
       ? "Seva Seeker"
       : "Seva Starter";
-  
+
   const serviceCategories = [
-    { title: 'Hygiene & Health', count: categoryToCount.hygiene, color: 'text-blue-500' },
-    { title: 'Eco-Friendliness', count: categoryToCount.eco, color: 'text-green-500' },
-    { title: 'Cultural & Community', count: categoryToCount.cultural, color: 'text-purple-500' },
+    {
+      title: "Hygiene & Health",
+      count: categoryToCount.hygiene,
+      color: "text-blue-500",
+    },
+    {
+      title: "Eco-Friendliness",
+      count: categoryToCount.eco,
+      color: "text-green-500",
+    },
+    {
+      title: "Cultural & Community",
+      count: categoryToCount.cultural,
+      color: "text-purple-500",
+    },
   ];
 
   const statsCards = [
-    { title: 'Your Total Points', value: totalPoints.toLocaleString(), color: 'bg-purple-500' },
-    { title: 'Total Community Points', value: communityImpact.totalCommunityPoints.toLocaleString(), color: 'bg-red-500' },
-    { title: 'Your Actions', value: user.totalActions.toLocaleString(), color: 'bg-cyan-500' },
-    { title: 'Lost Items Found', value: communityImpact.lostHelp.toLocaleString(), color: 'bg-orange-500' },
-    { title: 'Hygiene Reports', value: communityImpact.hygieneReports.toLocaleString(), color: 'bg-green-500' }
+    {
+      title: "Your Total Points",
+      value: totalPoints.toLocaleString(),
+      color: "bg-purple-500",
+    },
+    {
+      title: "Total Community Points",
+      value: communityImpact.totalCommunityPoints.toLocaleString(),
+      color: "bg-red-500",
+    },
+    {
+      title: "Your Actions",
+      value: user.totalActions.toLocaleString(),
+      color: "bg-cyan-500",
+    },
+    {
+      title: "Lost Items Found",
+      value: communityImpact.lostHelp.toLocaleString(),
+      color: "bg-orange-500",
+    },
+    {
+      title: "Hygiene Reports",
+      value: communityImpact.hygieneReports.toLocaleString(),
+      color: "bg-green-500",
+    },
   ];
 
-  const recentActivities = user.recentActions.map(a => ({
+  const recentActivities = user.recentActions.map((a) => ({
     action: a.actionName,
     points: a.points,
   }));
@@ -163,6 +271,7 @@ export default async function DashboardPage() {
     statsCards,
     recentActivities,
     rankTitle,
+    isDatabaseAvailable: profileRes.success && profileRes.user !== mockUser,
   };
 
   return <DashboardClient {...dashboardProps} />;

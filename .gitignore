@@ -41,3 +41,21 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# ================================
+# Spacebar Server Integration
+# ================================
+# Server dependencies and build output
+server/node_modules/
+server/dist/
+server/.env
+server/*.db
+server/*.sqlite
+server/database/
+server/*.log
+server/logs/
+server/uploads/
+
+# Server temporary files
+server/tmp/
+server/temp/

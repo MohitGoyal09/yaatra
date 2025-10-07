@@ -28,37 +28,87 @@ const Popup = dynamicImport(
   }
 );
 
-// TypeScript interface for karma event data points
+// TypeScript interfaces for different marker types
 interface PunyaHotspot {
   id: string;
   lat: number;
   lng: number;
-  intensity: number;
-  action: string;
-  timestamp: string;
+  type: "karma" | "lost_found" | "crime";
+  intensity?: number;
+  action?: string;
+  timestamp?: string;
+  // Lost/Found specific
+  subtype?: "lost" | "found";
+  category?: string;
+  name?: string;
+  description?: string;
+  location?: string;
+  contact_name?: string;
+  contact_phone?: string;
+  image_url?: string;
+  created_at?: string;
+  user_name?: string;
+  severity?: string;
+  // Crime specific
+  incident_date?: string;
+  is_anonymous?: boolean;
 }
 
-// Create custom SVG-based marker icon
-const createKarmaIcon = (intensity: number) => {
-  // Choose symbol based on intensity
-  let symbol = "🌟"; // Default star
-  let color = "#10b981"; // Default green
+// Create custom SVG-based marker icon based on type
+const createMarkerIcon = (hotspot: PunyaHotspot) => {
+  let symbol = "🌟";
+  let color = "#10b981";
 
-  if (intensity >= 80) {
-    symbol = "🔥"; // Fire for high intensity
-    color = "#ef4444"; // Red
-  } else if (intensity >= 60) {
-    symbol = "⚡"; // Lightning for medium-high
-    color = "#f59e0b"; // Orange
-  } else if (intensity >= 40) {
-    symbol = "💚"; // Heart for medium
-    color = "#22c55e"; // Green
-  } else if (intensity >= 20) {
-    symbol = "✨"; // Sparkles for low-medium
-    color = "#3b82f6"; // Blue
-  } else {
-    symbol = "💫"; // Dizzy star for low
-    color = "#8b5cf6"; // Purple
+  switch (hotspot.type) {
+    case "karma":
+      // Choose symbol based on intensity
+      if (hotspot.intensity && hotspot.intensity >= 80) {
+        symbol = "🔥";
+        color = "#ef4444";
+      } else if (hotspot.intensity && hotspot.intensity >= 60) {
+        symbol = "⚡";
+        color = "#f59e0b";
+      } else if (hotspot.intensity && hotspot.intensity >= 40) {
+        symbol = "💚";
+        color = "#22c55e";
+      } else if (hotspot.intensity && hotspot.intensity >= 20) {
+        symbol = "✨";
+        color = "#3b82f6";
+      } else {
+        symbol = "💫";
+        color = "#8b5cf6";
+      }
+      break;
+
+    case "lost_found":
+      if (hotspot.subtype === "lost") {
+        symbol = "🔍";
+        color = "#ef4444"; // Red for lost items
+      } else {
+        symbol = "✅";
+        color = "#22c55e"; // Green for found items
+      }
+      break;
+
+    case "crime":
+      switch (hotspot.severity) {
+        case "critical":
+          symbol = "🚨";
+          color = "#dc2626";
+          break;
+        case "high":
+          symbol = "⚠️";
+          color = "#ea580c";
+          break;
+        case "medium":
+          symbol = "🔶";
+          color = "#d97706";
+          break;
+        default:
+          symbol = "📋";
+          color = "#6b7280";
+      }
+      break;
   }
 
   const svgIcon = `
@@ -70,7 +120,7 @@ const createKarmaIcon = (intensity: number) => {
 
   return L.divIcon({
     html: svgIcon,
-    className: "custom-karma-marker",
+    className: `custom-marker-${hotspot.type}`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -16],
@@ -122,12 +172,28 @@ function LiveKarmaMapComponent() {
         const newHotspot: PunyaHotspot = {
           id:
             data.id ||
-            `karma-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            `marker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           lat: lat,
           lng: lng,
-          intensity: data.intensity || 50,
-          action: data.action || "Positive action",
-          timestamp: data.timestamp || new Date().toISOString(),
+          type: data.type || "karma",
+          intensity: data.intensity,
+          action: data.action,
+          timestamp: data.timestamp,
+          // Lost/Found fields
+          subtype: data.subtype,
+          category: data.category,
+          name: data.name,
+          description: data.description,
+          location: data.location,
+          contact_name: data.contact_name,
+          contact_phone: data.contact_phone,
+          image_url: data.image_url,
+          created_at: data.created_at,
+          user_name: data.user_name,
+          severity: data.severity,
+          // Crime fields
+          incident_date: data.incident_date,
+          is_anonymous: data.is_anonymous,
         };
 
         // Update state by appending new hotspot to existing array
@@ -172,43 +238,93 @@ function LiveKarmaMapComponent() {
       {showLegend && (
         <div className="absolute top-16 right-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4 max-w-xs">
           <h3 className="font-semibold text-gray-800 mb-3 text-sm">
-            Karma Intensity Legend
+            Community Map Legend
           </h3>
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-sm">
-                🔥
+
+          {/* Lost/Found Items */}
+          <div className="mb-3">
+            <h4 className="font-medium text-gray-700 mb-2 text-xs">
+              Lost & Found
+            </h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
+                  🔍
+                </div>
+                <span className="text-gray-600">Lost Items</span>
               </div>
-              <span className="text-gray-700">High (80-100)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm">
-                ⚡
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                  ✅
+                </div>
+                <span className="text-gray-600">Found Items</span>
               </div>
-              <span className="text-gray-700">Medium-High (60-79)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">
-                💚
-              </div>
-              <span className="text-gray-700">Medium (40-59)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
-                ✨
-              </div>
-              <span className="text-gray-700">Low-Medium (20-39)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm">
-                💫
-              </div>
-              <span className="text-gray-700">Low (0-19)</span>
             </div>
           </div>
+
+          {/* Crime Reports */}
+          <div className="mb-3">
+            <h4 className="font-medium text-gray-700 mb-2 text-xs">
+              Crime Reports
+            </h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-xs">
+                  🚨
+                </div>
+                <span className="text-gray-600">Critical</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
+                  ⚠️
+                </div>
+                <span className="text-gray-600">High</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs">
+                  🔶
+                </div>
+                <span className="text-gray-600">Medium</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs">
+                  📋
+                </div>
+                <span className="text-gray-600">Low</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Karma Events */}
+          <div className="mb-3">
+            <h4 className="font-medium text-gray-700 mb-2 text-xs">
+              Positive Actions
+            </h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
+                  🔥
+                </div>
+                <span className="text-gray-600">High Impact</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                  💚
+                </div>
+                <span className="text-gray-600">Medium Impact</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                  ✨
+                </div>
+                <span className="text-gray-600">Low Impact</span>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-3 pt-3 border-t border-gray-200">
             <p className="text-xs text-gray-600">
-              <strong>Total Events:</strong> {hotspots.length}
+              <strong>Total Markers:</strong> {hotspots.length}
             </p>
             <p className="text-xs text-gray-500 mt-1">
               Click markers for details
@@ -241,22 +357,99 @@ function LiveKarmaMapComponent() {
             <Marker
               key={hotspot.id}
               position={[hotspot.lat, hotspot.lng]}
-              icon={createKarmaIcon(hotspot.intensity)}
+              icon={createMarkerIcon(hotspot)}
             >
               <Popup>
-                <div className="p-2">
-                  <h3 className="font-semibold text-green-600 mb-2">
-                    🌟 Karma Event
-                  </h3>
-                  <p className="text-sm mb-1">
-                    <strong>Action:</strong> {hotspot.action}
-                  </p>
-                  <p className="text-sm mb-1">
-                    <strong>Intensity:</strong> {hotspot.intensity}/100
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(hotspot.timestamp).toLocaleString()}
-                  </p>
+                <div className="p-2 max-w-xs">
+                  {hotspot.type === "karma" && (
+                    <>
+                      <h3 className="font-semibold text-green-600 mb-2">
+                        🌟 Karma Event
+                      </h3>
+                      <p className="text-sm mb-1">
+                        <strong>Action:</strong> {hotspot.action}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Intensity:</strong> {hotspot.intensity}/100
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {hotspot.timestamp &&
+                          new Date(hotspot.timestamp).toLocaleString()}
+                      </p>
+                    </>
+                  )}
+
+                  {hotspot.type === "lost_found" && (
+                    <>
+                      <h3
+                        className={`font-semibold mb-2 ${
+                          hotspot.subtype === "lost"
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {hotspot.subtype === "lost"
+                          ? "🔍 Lost Item"
+                          : "✅ Found Item"}
+                      </h3>
+                      <p className="text-sm mb-1">
+                        <strong>Name:</strong> {hotspot.name}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Category:</strong> {hotspot.category}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Description:</strong>{" "}
+                        {hotspot.description?.substring(0, 100)}...
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Contact:</strong> {hotspot.contact_name} -{" "}
+                        {hotspot.contact_phone}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {hotspot.created_at &&
+                          new Date(hotspot.created_at).toLocaleString()}
+                      </p>
+                    </>
+                  )}
+
+                  {hotspot.type === "crime" && (
+                    <>
+                      <h3
+                        className={`font-semibold mb-2 ${
+                          hotspot.severity === "critical"
+                            ? "text-red-600"
+                            : hotspot.severity === "high"
+                            ? "text-orange-600"
+                            : hotspot.severity === "medium"
+                            ? "text-yellow-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        🚨 Crime Report
+                      </h3>
+                      <p className="text-sm mb-1">
+                        <strong>Type:</strong> {hotspot.subtype}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Severity:</strong> {hotspot.severity}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Description:</strong>{" "}
+                        {hotspot.description?.substring(0, 100)}...
+                      </p>
+                      {!hotspot.is_anonymous && (
+                        <p className="text-sm mb-1">
+                          <strong>Contact:</strong> {hotspot.contact_name} -{" "}
+                          {hotspot.contact_phone}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        {hotspot.created_at &&
+                          new Date(hotspot.created_at).toLocaleString()}
+                      </p>
+                    </>
+                  )}
                 </div>
               </Popup>
             </Marker>

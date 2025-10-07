@@ -16,37 +16,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Upload,
+  AlertTriangle,
+  Shield,
   MapPin,
   User,
   Phone,
   Mail,
   Home,
   Camera,
-  AlertCircle,
-  CheckCircle,
   X,
+  Upload,
 } from "lucide-react";
 import {
-  lostFoundItemSchema,
-  type LostFoundItemFormData,
-} from "@/lib/validations/lost-found";
-import { LocationPicker, type LocationData } from "./location-picker";
+  crimeReportSchema,
+  type CrimeReportFormData,
+} from "@/lib/validations/crime-report";
+import {
+  LocationPicker,
+  type LocationData,
+} from "../lost-found/location-picker";
 
-interface LostFoundFormProps {
-  onSubmit: (data: LostFoundItemFormData) => Promise<void>;
+interface CrimeReportFormProps {
+  onSubmit: (data: CrimeReportFormData) => Promise<void>;
   isLoading?: boolean;
-  initialData?: Partial<LostFoundItemFormData>;
+  initialData?: Partial<CrimeReportFormData>;
   mode?: "create" | "edit";
 }
 
-export function LostFoundForm({
+export function CrimeReportForm({
   onSubmit,
   isLoading = false,
   initialData,
   mode = "create",
-}: LostFoundFormProps) {
+}: CrimeReportFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialData?.imageUrl || null
   );
@@ -65,57 +69,29 @@ export function LostFoundForm({
     setValue,
     watch,
     formState: { errors, isValid },
-  } = useForm<LostFoundItemFormData>({
-    resolver: zodResolver(lostFoundItemSchema),
+  } = useForm<CrimeReportFormData>({
+    resolver: zodResolver(crimeReportSchema),
     defaultValues: {
-      type: initialData?.type || "lost",
-      category: initialData?.category || "item",
-      name: initialData?.name || "",
+      crime_type: initialData?.crime_type || "theft",
+      severity: initialData?.severity || "medium",
       description: initialData?.description || "",
       location: initialData?.location || "",
+      incident_date: initialData?.incident_date || "",
       contactName: initialData?.contactName || "",
       contactPhone: initialData?.contactPhone || "",
       contactEmail: initialData?.contactEmail || "",
       contactAddress: initialData?.contactAddress || "",
       imageUrl: initialData?.imageUrl || "",
+      is_anonymous: initialData?.is_anonymous || false,
     },
     mode: "onChange",
   });
 
-  const watchedType = watch("type");
-  const watchedCategory = watch("category");
+  const watchedCrimeType = watch("crime_type");
+  const watchedSeverity = watch("severity");
+  const watchedIsAnonymous = watch("is_anonymous");
 
-  const handleImageUrlChange = (url: string) => {
-    setValue("imageUrl", url);
-    setImagePreview(url);
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setValue("imageFile", file);
-
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setSelectedFile(null);
-    setImagePreview(null);
-    setValue("imageFile", undefined);
-    setValue("imageUrl", "");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Auto-capture location when form loads (only for new items)
+  // Auto-capture location when form loads (only for new reports)
   useEffect(() => {
     if (
       mode === "create" &&
@@ -203,42 +179,38 @@ export function LostFoundForm({
     }
   }, [mode, setValue, locationData.coordinates]);
 
-  const testAPI = async () => {
-    console.log("🧪 Testing simple API...");
-    try {
-      const response = await fetch("/api/test-lost-found", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("🧪 Test API response status:", response.status);
-      const data = await response.json();
-      console.log("🧪 Test API response data:", data);
-      alert("Test API working! Check console for details.");
-    } catch (error) {
-      console.error("🧪 Test API error:", error);
-      alert("Test API failed! Check console for details.");
+  const handleImageUrlChange = (url: string) => {
+    setValue("imageUrl", url);
+    setImagePreview(url);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setValue("imageFile", file);
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const onSubmitForm = async (data: LostFoundItemFormData) => {
-    console.log("📋 Form onSubmitForm called with data:", data);
-    console.log("🔍 Form data breakdown:", {
-      type: data.type,
-      category: data.category,
-      name: data.name,
-      description: data.description,
-      location: data.location,
-      locationData: data.locationData,
-      locationCoordinates: data.locationCoordinates,
-      contactName: data.contactName,
-      contactPhone: data.contactPhone,
-      contactEmail: data.contactEmail,
-      contactAddress: data.contactAddress,
-      imageUrl: data.imageUrl,
-      imageFile: data.imageFile,
-    });
+  const removeImage = () => {
+    setSelectedFile(null);
+    setImagePreview(null);
+    setValue("imageFile", undefined);
+    setValue("imageUrl", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const onSubmitForm = async (data: CrimeReportFormData) => {
+    console.log("📋 Crime Report Form onSubmitForm called with data:", data);
     try {
       await onSubmit(data);
     } catch (error) {
@@ -246,26 +218,31 @@ export function LostFoundForm({
     }
   };
 
-  const getTypeColor = (type: string) => {
-    return type === "lost" ? "bg-red-500" : "bg-green-500";
-  };
-
-  const getTypeLabel = (type: string) => {
-    return type === "lost" ? "Lost" : "Found";
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "person":
-        return <User className="h-4 w-4" />;
-      case "pet":
-        return "🐕";
-      case "item":
-        return "📦";
-      case "document":
-        return "📄";
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case "critical":
+        return "bg-red-600";
+      case "high":
+        return "bg-orange-500";
+      case "medium":
+        return "bg-yellow-500";
       default:
-        return "❓";
+        return "bg-gray-500";
+    }
+  };
+
+  const getCrimeTypeIcon = (type: string) => {
+    switch (type) {
+      case "theft":
+        return "👜";
+      case "vandalism":
+        return "🎨";
+      case "assault":
+        return "👊";
+      case "fraud":
+        return "💳";
+      default:
+        return "📋";
     }
   };
 
@@ -273,113 +250,102 @@ export function LostFoundForm({
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {mode === "create" ? (
-            <>
-              <AlertCircle className="h-5 w-5" />
-              Report {watchedType === "lost" ? "Lost" : "Found"} Item
-            </>
-          ) : (
-            <>
-              <CheckCircle className="h-5 w-5" />
-              Edit Item
-            </>
-          )}
+          <Shield className="h-5 w-5" />
+          {mode === "create" ? "Report Crime" : "Edit Crime Report"}
         </CardTitle>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6">
-          {/* Type Selection */}
+          {/* Crime Type */}
           <div className="space-y-2">
-            <Label htmlFor="type">Type *</Label>
+            <Label htmlFor="crime_type">Crime Type *</Label>
             <Select
-              value={watchedType}
-              onValueChange={(value) =>
-                setValue("type", value as "lost" | "found")
-              }
+              value={watchedCrimeType}
+              onValueChange={(value) => setValue("crime_type", value as any)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="Select crime type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="lost">
+                <SelectItem value="theft">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    Lost
+                    <span>👜</span>
+                    Theft
                   </div>
                 </SelectItem>
-                <SelectItem value="found">
+                <SelectItem value="vandalism">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    Found
+                    <span>🎨</span>
+                    Vandalism
                   </div>
                 </SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.type && (
-              <p className="text-sm text-red-500">{errors.type.message}</p>
-            )}
-          </div>
-
-          {/* Category Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select
-              value={watchedCategory}
-              onValueChange={(value) => setValue("category", value as any)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="person">
+                <SelectItem value="assault">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Person
+                    <span>👊</span>
+                    Assault
                   </div>
                 </SelectItem>
-                <SelectItem value="pet">
+                <SelectItem value="fraud">
                   <div className="flex items-center gap-2">
-                    <span>🐕</span>
-                    Pet
-                  </div>
-                </SelectItem>
-                <SelectItem value="item">
-                  <div className="flex items-center gap-2">
-                    <span>📦</span>
-                    Item
-                  </div>
-                </SelectItem>
-                <SelectItem value="document">
-                  <div className="flex items-center gap-2">
-                    <span>📄</span>
-                    Document
+                    <span>💳</span>
+                    Fraud
                   </div>
                 </SelectItem>
                 <SelectItem value="other">
                   <div className="flex items-center gap-2">
-                    <span>❓</span>
+                    <span>📋</span>
                     Other
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
-            {errors.category && (
-              <p className="text-sm text-red-500">{errors.category.message}</p>
+            {errors.crime_type && (
+              <p className="text-sm text-red-500">
+                {errors.crime_type.message}
+              </p>
             )}
           </div>
 
-          {/* Name */}
+          {/* Severity */}
           <div className="space-y-2">
-            <Label htmlFor="name">Name/Title *</Label>
-            <Input
-              id="name"
-              {...register("name")}
-              placeholder="Enter the name or title of the item"
-              className={errors.name ? "border-red-500" : ""}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-500">{errors.name.message}</p>
+            <Label htmlFor="severity">Severity Level *</Label>
+            <Select
+              value={watchedSeverity}
+              onValueChange={(value) => setValue("severity", value as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                    Low
+                  </div>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    Medium
+                  </div>
+                </SelectItem>
+                <SelectItem value="high">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                    High
+                  </div>
+                </SelectItem>
+                <SelectItem value="critical">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                    Critical
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.severity && (
+              <p className="text-sm text-red-500">{errors.severity.message}</p>
             )}
           </div>
 
@@ -389,7 +355,7 @@ export function LostFoundForm({
             <Textarea
               id="description"
               {...register("description")}
-              placeholder="Provide a detailed description of the item, including any distinguishing features, colors, size, etc."
+              placeholder="Provide a detailed description of the incident..."
               className={`min-h-[100px] ${
                 errors.description ? "border-red-500" : ""
               }`}
@@ -401,9 +367,25 @@ export function LostFoundForm({
             )}
           </div>
 
+          {/* Incident Date */}
+          <div className="space-y-2">
+            <Label htmlFor="incident_date">Incident Date & Time</Label>
+            <Input
+              id="incident_date"
+              type="datetime-local"
+              {...register("incident_date")}
+              className={errors.incident_date ? "border-red-500" : ""}
+            />
+            {errors.incident_date && (
+              <p className="text-sm text-red-500">
+                {errors.incident_date.message}
+              </p>
+            )}
+          </div>
+
           {/* Location */}
           <div className="space-y-2">
-            {/* <Label>Location *</Label> */}
+            <Label>Location *</Label>
 
             {/* Auto-capture notification */}
             {isAutoCapturingLocation && (
@@ -427,99 +409,113 @@ export function LostFoundForm({
             />
           </div>
 
-          {/* Contact Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Contact Information</h3>
-
-            {/* Contact Name */}
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Contact Name *</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="contactName"
-                  {...register("contactName")}
-                  placeholder="Your full name"
-                  className={`pl-10 ${
-                    errors.contactName ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-              {errors.contactName && (
-                <p className="text-sm text-red-500">
-                  {errors.contactName.message}
-                </p>
-              )}
-            </div>
-
-            {/* Contact Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Phone Number *</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="contactPhone"
-                  {...register("contactPhone")}
-                  placeholder="+91 9876543210"
-                  className={`pl-10 ${
-                    errors.contactPhone ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-              {errors.contactPhone && (
-                <p className="text-sm text-red-500">
-                  {errors.contactPhone.message}
-                </p>
-              )}
-            </div>
-
-            {/* Contact Email */}
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Email (Optional)</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="contactEmail"
-                  {...register("contactEmail")}
-                  placeholder="your.email@example.com"
-                  type="email"
-                  className={`pl-10 ${
-                    errors.contactEmail ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-              {errors.contactEmail && (
-                <p className="text-sm text-red-500">
-                  {errors.contactEmail.message}
-                </p>
-              )}
-            </div>
-
-            {/* Contact Address */}
-            <div className="space-y-2">
-              <Label htmlFor="contactAddress">Address (Optional)</Label>
-              <div className="relative">
-                <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Textarea
-                  id="contactAddress"
-                  {...register("contactAddress")}
-                  placeholder="Your complete address"
-                  className={`pl-10 min-h-[80px] ${
-                    errors.contactAddress ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-              {errors.contactAddress && (
-                <p className="text-sm text-red-500">
-                  {errors.contactAddress.message}
-                </p>
-              )}
-            </div>
+          {/* Anonymous Report */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_anonymous"
+              checked={watchedIsAnonymous}
+              onCheckedChange={(checked) => setValue("is_anonymous", !!checked)}
+            />
+            <Label htmlFor="is_anonymous" className="text-sm">
+              Submit anonymously
+            </Label>
           </div>
+
+          {/* Contact Information (only if not anonymous) */}
+          {!watchedIsAnonymous && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Contact Information</h3>
+
+              {/* Contact Name */}
+              <div className="space-y-2">
+                <Label htmlFor="contactName">Contact Name *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="contactName"
+                    {...register("contactName")}
+                    placeholder="Your full name"
+                    className={`pl-10 ${
+                      errors.contactName ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.contactName && (
+                  <p className="text-sm text-red-500">
+                    {errors.contactName.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Contact Phone */}
+              <div className="space-y-2">
+                <Label htmlFor="contactPhone">Phone Number *</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="contactPhone"
+                    {...register("contactPhone")}
+                    placeholder="+91 9876543210"
+                    className={`pl-10 ${
+                      errors.contactPhone ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.contactPhone && (
+                  <p className="text-sm text-red-500">
+                    {errors.contactPhone.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Contact Email */}
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail">Email (Optional)</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="contactEmail"
+                    {...register("contactEmail")}
+                    placeholder="your.email@example.com"
+                    type="email"
+                    className={`pl-10 ${
+                      errors.contactEmail ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.contactEmail && (
+                  <p className="text-sm text-red-500">
+                    {errors.contactEmail.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Contact Address */}
+              <div className="space-y-2">
+                <Label htmlFor="contactAddress">Address (Optional)</Label>
+                <div className="relative">
+                  <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Textarea
+                    id="contactAddress"
+                    {...register("contactAddress")}
+                    placeholder="Your complete address"
+                    className={`pl-10 min-h-[80px] ${
+                      errors.contactAddress ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.contactAddress && (
+                  <p className="text-sm text-red-500">
+                    {errors.contactAddress.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label htmlFor="imageFile">Upload Image (Optional)</Label>
+            <Label htmlFor="imageFile">Upload Evidence Image (Optional)</Label>
 
             {/* File Input */}
             <div className="relative">
@@ -530,7 +526,7 @@ export function LostFoundForm({
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
-                aria-label="Upload image file"
+                aria-label="Upload evidence image file"
               />
               <Button
                 type="button"
@@ -588,40 +584,33 @@ export function LostFoundForm({
           {/* Submit Button */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className={getTypeColor(watchedType)}>
-                {getTypeLabel(watchedType)}
+              <Badge
+                variant="outline"
+                className={getSeverityColor(watchedSeverity)}
+              >
+                {watchedSeverity}
               </Badge>
               <Badge variant="outline">
-                {getCategoryIcon(watchedCategory)} {watchedCategory}
+                {getCrimeTypeIcon(watchedCrimeType)} {watchedCrimeType}
               </Badge>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={testAPI}
-                className="min-w-[100px]"
-              >
-                Test API
-              </Button>
-              <Button
-                type="submit"
-                disabled={!isValid || isLoading}
-                className="min-w-[120px]"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    {mode === "create" ? "Submitting..." : "Updating..."}
-                  </div>
-                ) : mode === "create" ? (
-                  "Submit Report"
-                ) : (
-                  "Update Item"
-                )}
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              disabled={!isValid || isLoading}
+              className="min-w-[120px]"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {mode === "create" ? "Submitting..." : "Updating..."}
+                </div>
+              ) : mode === "create" ? (
+                "Submit Report"
+              ) : (
+                "Update Report"
+              )}
+            </Button>
           </div>
         </form>
       </CardContent>

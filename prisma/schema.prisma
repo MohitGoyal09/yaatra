@@ -27,6 +27,7 @@ model User {
   postComments        PostComment[]
   postShares          PostShare[]
   lostFoundItems      LostFoundItem[]
+  crimeReports        CrimeReport[]
 }
 
 model Action {
@@ -133,5 +134,31 @@ model LostFoundItem {
 
   @@index([type, status])
   @@index([category])
+  @@index([location])
+}
+
+model CrimeReport {
+  id                   String    @id @default(cuid())
+  user                 User      @relation(fields: [userId], references: [id])
+  userId               String
+  crime_type           String // 'theft', 'vandalism', 'assault', 'fraud', 'other'
+  severity             String // 'low', 'medium', 'high', 'critical'
+  description          String
+  location             String
+  incident_date        DateTime?
+  contact_name         String
+  contact_phone        String
+  contact_email        String?
+  contact_address      String?
+  image_url            String?
+  status               String    @default("reported") // 'reported', 'investigating', 'resolved', 'closed'
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+  resolved_at          DateTime?
+  location_coordinates Json? // Store lat/lng if available
+  is_anonymous         Boolean   @default(false)
+
+  @@index([crime_type, status])
+  @@index([severity])
   @@index([location])
 }

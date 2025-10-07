@@ -15,6 +15,10 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export default clerkMiddleware((auth, req) => {
+  // Skip internationalization for API routes
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    return;
+  }
   return intlMiddleware(req);
 });
 

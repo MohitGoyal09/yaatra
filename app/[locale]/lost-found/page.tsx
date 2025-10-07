@@ -89,45 +89,48 @@ export default function LostFoundPage() {
   };
 
   const handleSubmitForm = async (formData: LostFoundItemFormData) => {
+    console.log("🚀 Form submission started");
+    console.log("📝 Form data received:", formData);
+
     setSubmitting(true);
     try {
+      const requestBody = {
+        type: formData.type,
+        category: formData.category,
+        name: formData.name,
+        description: formData.description,
+        location: formData.location,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone,
+        contactEmail: formData.contactEmail,
+        contactAddress: formData.contactAddress,
+        imageUrl: formData.imageUrl,
+        locationData: formData.locationData,
+        locationCoordinates: formData.locationCoordinates,
+      };
+
+      console.log("📤 Request body being sent:", requestBody);
+      console.log("🌐 Making API call to: /api/lost-found");
+
       const response = await fetch("/api/lost-found", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          type: formData.type,
-          category: formData.category,
-          name: formData.name,
-          description: formData.description,
-          location: formData.location,
-          contactName: formData.contactName,
-          contactPhone: formData.contactPhone,
-          contactEmail: formData.contactEmail,
-          contactAddress: formData.contactAddress,
-          imageUrl: formData.imageUrl,
-          locationCoordinates: formData.locationCoordinates,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Add the new item to the list
-        setItems((prev) => [data.item, ...prev]);
-        // Switch to browse tab to show the new item
-        setActiveTab("browse");
-        // Show success message (you can add a toast here)
-        alert("Item submitted successfully! +10 points awarded");
-      } else {
-        console.error("Failed to submit item:", data.error);
-        alert("Failed to submit item. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting item:", error);
-      alert("Error submitting item. Please try again.");
+    
+    } catch (error : any) {
+      console.error("💥 Network/parsing error:", error);
+      console.error("💥 Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      alert(`Error submitting item: ${error.message || "Unknown error"}`);
     } finally {
+      console.log("🏁 Form submission finished");
       setSubmitting(false);
     }
   };

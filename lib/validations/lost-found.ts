@@ -2,10 +2,10 @@ import { z } from "zod";
 
 export const lostFoundItemSchema = z.object({
   type: z.enum(["lost", "found"], {
-    required_error: "Please select whether this is a lost or found item",
+    message: "Please select whether this is a lost or found item",
   }),
   category: z.enum(["person", "pet", "item", "document", "other"], {
-    required_error: "Please select a category",
+    message: "Please select a category",
   }),
   name: z
     .string()
@@ -22,6 +22,24 @@ export const lostFoundItemSchema = z.object({
     .min(3, "Location must be at least 3 characters")
     .max(200, "Location must be less than 200 characters")
     .trim(),
+  locationData: z
+    .object({
+      address: z.string().min(3, "Address is required"),
+      coordinates: z
+        .object({
+          lat: z.number().min(-90).max(90),
+          lng: z.number().min(-180).max(180),
+        })
+        .optional(),
+      placeName: z.string().optional(),
+    })
+    .optional(),
+  locationCoordinates: z
+    .object({
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    })
+    .optional(),
   contactName: z
     .string()
     .min(2, "Contact name must be at least 2 characters")
@@ -42,17 +60,25 @@ export const lostFoundItemSchema = z.object({
     .max(500, "Address must be less than 500 characters")
     .optional()
     .or(z.literal("")),
+  imageFile: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 5 * 1024 * 1024,
+      "File size must be less than 5MB"
+    )
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
+          file.type
+        ),
+      "Only JPEG, PNG, and WebP images are allowed"
+    )
+    .optional(),
   imageUrl: z
     .string()
     .url("Please enter a valid image URL")
     .optional()
     .or(z.literal("")),
-  locationCoordinates: z
-    .object({
-      lat: z.number().min(-90).max(90),
-      lng: z.number().min(-180).max(180),
-    })
-    .optional(),
 });
 
 export type LostFoundItemFormData = z.infer<typeof lostFoundItemSchema>;

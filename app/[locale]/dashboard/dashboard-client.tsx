@@ -10,11 +10,10 @@ import {
   Map,
   Camera,
   QrCode,
-  MapPin,
+  MapPin, Trophy, Target,
   Clock,
   Users,
   Zap,
-  Target,
   Award,
   Bell,
   Activity,
@@ -22,6 +21,9 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { OpenStreetMap } from "@/components/map/openstreet-map";
+import { Progress } from "@/components/ui/progress";
+import { DonutChart } from "@/components/ui/donut-chart";
+import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
 
 interface DashboardClientProps {
   user: any;
@@ -41,6 +43,17 @@ interface DashboardClientProps {
     points: number;
   }>;
   rankTitle: string;
+  nextRankInfo: {
+    nextRank: string;
+    needed: number;
+    progress: number;
+  };
+  chartData: Array<{
+    category: string;
+    value: number;
+    fill: string;
+  }>;
+  totalPoints: number;
 }
 
 const DashboardClient = ({
@@ -50,6 +63,9 @@ const DashboardClient = ({
   statsCards,
   recentActivities,
   rankTitle,
+  nextRankInfo,
+  chartData,
+  totalPoints
 }: DashboardClientProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -151,7 +167,7 @@ const DashboardClient = ({
         pointsRef.current = newPoints;
         return newPoints;
       });
-    }, 2000);
+    }, 15000000);
     return () => clearInterval(interval);
   }, []);
 
@@ -307,8 +323,9 @@ const DashboardClient = ({
           </div>
         </div>
 
-        {/* Hero Section with Carousel and Service Categories */}
+        {/* Leaderboard and Service Categories */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Leaderboard Snapshot */}
           <div className="lg:col-span-2">
             <div className="bg-card rounded-lg shadow-lg overflow-hidden">
               <div className="relative h-96">
@@ -348,6 +365,7 @@ const DashboardClient = ({
             </div>
           </div>
 
+          {/* Service Categories */}
           <div className="lg:col-span-1">
             <div className="bg-card rounded-lg shadow-lg">
               <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
@@ -378,6 +396,36 @@ const DashboardClient = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Hero Carousel */}
+        <div className="bg-card rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="relative h-96">
+            {carouselImages.map((img, idx) => (
+              <img key={idx} src={img} alt={`Slide ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+              <div className="p-8 text-white">
+                <h2 className="text-3xl font-bold mb-2">Experience Divine Journey</h2>
+                <p className="text-lg">Your spiritual companion in Ujjain</p>
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4 flex space-x-2">
+              {carouselImages.map((_, idx) => (
+                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {statsCards.slice(3).map((stat: any, idx: number) => (
+            <div key={idx + 3} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
+              <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
+              <p className="text-3xl font-bold">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* About Section */}

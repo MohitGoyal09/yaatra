@@ -5,9 +5,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // POST - Like or unlike a post
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // For now, allow unauthenticated access for testing
     // const { userId } = await auth();
     // if (!userId) {
@@ -25,7 +26,7 @@ export async function POST(
 
     // Check if post exists
     const post = await prisma.socialPost.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, userId: true },
     });
 
@@ -37,7 +38,7 @@ export async function POST(
     const existingLike = await prisma.postLike.findUnique({
       where: {
         postId_userId: {
-          postId: params.id,
+          postId: id,
           userId: appUser.id,
         },
       },
@@ -51,7 +52,7 @@ export async function POST(
       await prisma.postLike.delete({
         where: {
           postId_userId: {
-            postId: params.id,
+            postId: id,
             userId: appUser.id,
           },
         },
@@ -61,7 +62,7 @@ export async function POST(
       // Like the post
       await prisma.postLike.create({
         data: {
-          postId: params.id,
+          postId: id,
           userId: appUser.id,
         },
       });
@@ -84,7 +85,7 @@ export async function POST(
 
     // Get updated like count
     const likeCount = await prisma.postLike.count({
-      where: { postId: params.id },
+      where: { postId: id },
     });
 
     return NextResponse.json({

@@ -5,11 +5,12 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // GET - Fetch a specific lost/found item
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const item = await prisma.lostFoundItem.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -41,9 +42,10 @@ export async function GET(
 // PUT - Update a lost/found item (only by the author)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,7 +83,7 @@ export async function PUT(
 
     // Check if user owns the item
     const existingItem = await prisma.lostFoundItem.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { userId: true },
     });
 
@@ -98,7 +100,7 @@ export async function PUT(
 
     // Update the item
     const updatedItem = await prisma.lostFoundItem.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         type: type || undefined,
         category: category || undefined,
@@ -141,9 +143,10 @@ export async function PUT(
 // DELETE - Delete a lost/found item (only by the author)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -166,7 +169,7 @@ export async function DELETE(
 
     // Check if user owns the item
     const item = await prisma.lostFoundItem.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { userId: true },
     });
 
@@ -183,7 +186,7 @@ export async function DELETE(
 
     // Delete the item
     await prisma.lostFoundItem.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

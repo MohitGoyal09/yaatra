@@ -5,16 +5,17 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // GET - Fetch a specific post
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const post = await prisma.socialPost.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -86,9 +87,10 @@ export async function GET(
 // DELETE - Delete a post (only by the author)
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -111,7 +113,7 @@ export async function DELETE(
 
     // Check if user owns the post
     const post = await prisma.socialPost.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { userId: true },
     });
 
@@ -128,7 +130,7 @@ export async function DELETE(
 
     // Delete the post (cascade will handle related records)
     await prisma.socialPost.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

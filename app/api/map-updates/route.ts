@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { PrismaClient } from "@/app/generated/prisma";
+import { PrismaClient, Prisma } from "@/app/generated/prisma";
 
 // Alternative Prisma client for debugging
 const directPrisma = new PrismaClient();
@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
           const lostFoundItems = await prismaClient.lostFoundItem.findMany({
             where: {
               status: "active",
-              location_coordinates: { not: null },
+              location_coordinates: {
+                not: Prisma.AnyNull,
+              },
             },
             include: {
               user: {
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest) {
           const crimeReports = await prismaClient.crimeReport.findMany({
             where: {
               status: { not: "closed" },
-              location_coordinates: { not: null },
+              location_coordinates: {
+                not: Prisma.AnyNull,
+              },
             },
             include: {
               user: {
@@ -84,7 +88,7 @@ export async function GET(request: NextRequest) {
                 contact_phone: item.contact_phone,
                 image_url: item.image_url,
                 created_at: item.created_at.toISOString(),
-                user_name: item.user.name,
+                user_name: (item as any).user?.name ?? null,
                 severity: item.type === "lost" ? "medium" : "low",
               };
 
@@ -117,7 +121,7 @@ export async function GET(request: NextRequest) {
                 incident_date: report.incident_date?.toISOString(),
                 image_url: report.image_url,
                 created_at: report.created_at.toISOString(),
-                user_name: report.is_anonymous ? "Anonymous" : report.user.name,
+                user_name: report.is_anonymous ? "Anonymous" : null,
                 is_anonymous: report.is_anonymous,
               };
 

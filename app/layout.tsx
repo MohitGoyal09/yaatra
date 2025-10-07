@@ -42,7 +42,7 @@ export default function RootLayout({
             <SocialShareProvider>
               <div className="min-h-screen">
                 <AppNavbar />
-                <main className="mx-auto max-w-6xl px-4">{children}</main>
+                <main>{children}</main>
 
                 {/* Vapi Widget - will only render if environment variables are set */}
                 <VapiWidgetComponent

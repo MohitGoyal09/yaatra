@@ -36,22 +36,6 @@ const YaatraSarthiHome = () => {
   const { theme } = useTheme();
   const [scrollY, setScrollY] = useState(0);
 
-  // const languages: Language[] = [
-  //   { code: 'en', name: 'English' },
-  //   { code: 'hi', name: 'हिंदी' },
-  //   { code: 'gu', name: 'ગુજરાતી' },
-  //   { code: 'mr', name: 'मराठी' }
-  // ];
-
-  // const navItems: NavItem[] = [
-  //   { name: 'Dashboard', href: '/dashboard' },
-  //   { name: 'Leaderboard', href: '/leaderboard' },
-  //   { name: 'Sarthi', href: '/sarthi' },
-  //   { name: 'Live Karma Map', href: '/karma-map' },
-  //   { name: 'Social Feed', href: '/social-feed' },
-  //   { name: 'Lost & Found', href: '/lost-found' }
-  // ];
-
   const galleryImages: GalleryImage[] = [
     { url: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800', title: 'Mahakaleshwar Temple' },
     { url: 'https://images.unsplash.com/photo-1609920658906-8223bd289001?w=800', title: 'Ram Ghat' },
@@ -87,8 +71,8 @@ const YaatraSarthiHome = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground w-full relative">
-      {/* Fixed Background Image */}
+    <div className="min-h-screen bg-background text-foreground w-full relative overflow-x-hidden">
+      {/* Fixed Background Image - starts after hero section */}
       <div
         className="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat z-0 bg-fixed"
         style={{
@@ -97,15 +81,27 @@ const YaatraSarthiHome = () => {
       />
 
       {/* Scrolling Window/Mask */}
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full video-container-override">
         
-        {/* Hero Section with reveal window */}
-        <section className="relative min-h-screen overflow-hidden w-full">
+        {/* Hero Section with video background */}
+        <section className="hero-video-section">
+          {/* Background Video */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="hero-video"
+          >
+            <source src="/Ujjain.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
           {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40 z-10"></div>
+          <div className="hero-overlay bg-gradient-to-r from-black/60 to-black/40"></div>
           
           {/* Content */}
-          <div className="relative z-20 w-full px-4 h-full min-h-screen flex flex-col items-center justify-center text-center text-white">
+          <div className="hero-content">
             <div 
               className="transform transition-all duration-300"
               style={{
@@ -132,13 +128,18 @@ const YaatraSarthiHome = () => {
           </div>
         </section>
 
-        {/* Content sections with background overlay */}
-        <div className="relative z-10 bg-background/95 backdrop-blur-sm">
+        {/* Content sections with background overlay - now with background image */}
+        <div className="relative z-10 ">
           
           {/* Quick Access Cards */}
-          <section className="py-16 lg:py-24 w-full">
+          <section className="py-16 lg:py-24 w-full relative  ">
+            {/* Background image overlay for this section */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 z-0"
+            />
+            
             <div
-              className="w-full px-4 mx-auto transform transition-all duration-500"
+              className="w-full px-4 mx-auto transform transition-all duration-500 relative z-10"
               style={{
                 transform: `translateY(${Math.max(0, (scrollY - 800) * 0.1)}px)`,
               }}
@@ -174,9 +175,14 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* Navigation Flow Chart with parallax */}
-          <section className="py-16 lg:py-24 w-full bg-muted/30">
+          <section className="py-16 lg:py-24 w-full relative bg-background/25 backdrop-blur-[2px] ">
+            {/* Background image overlay */}
             <div 
-              className="w-full px-4 max-w-7xl mx-auto"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 z-0"
+            />
+            
+            <div 
+              className="w-full px-4 max-w-7xl mx-auto relative z-10"
               style={{
                 transform: `translateY(${Math.max(0, (scrollY - 1200) * 0.05)}px)`,
               }}
@@ -215,9 +221,14 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* Gallery with revealing effect */}
-          <section className="py-16 lg:py-24 w-full overflow-hidden bg-muted/50">
+          <section className="py-16 lg:py-24 w-full relative bg-background/25 backdrop-blur-[2px]">
+            {/* Background image overlay */}
             <div 
-              className="w-full px-4 max-w-7xl mx-auto"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 z-0"
+            />
+            
+            <div 
+              className="w-full px-4 max-w-7xl mx-auto relative z-10"
               style={{
                 transform: `translateY(${Math.max(0, (scrollY - 1600) * 0.08)}px)`,
               }}
@@ -226,14 +237,6 @@ const YaatraSarthiHome = () => {
               
               {/* Background window reveal for gallery */}
               <div className="relative mb-8">
-                {/* <div 
-                  className="absolute inset-0 w-full h-64 bg-cover bg-center rounded-2xl"
-                  style={{
-                    backgroundImage: `url('https://images.unsplash.com/photo-1609920658906-8223bd289001?w=1920&h=1080&fit=crop')`,
-                    transform: `translateY(${-(scrollY - 1600) * 0.2}px)`,
-                    clipPath: `polygon(0 ${Math.max(0, 100 - (scrollY - 1600) * 0.1)}%, 100% ${Math.max(0, 100 - (scrollY - 1600) * 0.1)}%, 100% 100%, 0% 100%)`,
-                  }}
-                /> */}
                 <div className="relative z-10 h-64 bg-gradient-to-r from-primary/80 to-secondary/80 rounded-2xl flex items-center justify-center">
                   <h3 className="text-white text-2xl md:text-3xl font-bold">Sacred Moments</h3>
                 </div>
@@ -290,7 +293,7 @@ const YaatraSarthiHome = () => {
               <div className="relative h-32 mt-8 overflow-hidden rounded-2xl">
                 <div className="absolute inset-0 flex animate-scroll">
                   {[...galleryImages, ...galleryImages].map((img, idx) => (
-                    <div key={idx} className="flex-shrink-0 w-48 h-32 relative">
+                    <div key={idx} className="flex-shrink-0 w-60 h-32 relative">
                       <img
                         src={img.url}
                         alt={img.title}
@@ -321,15 +324,20 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* History section with window effect */}
-          <section className="py-16 lg:py-24 w-full relative">
+          <section className="py-16 lg:py-24 w-full relative bg-background/50 backdrop-blur-[2px]">
             {/* Background window for history */}
             <div 
-              className="absolute top-0 right-0 w-1/2 h-full bg-cover bg-center opacity-20"
+              className="absolute top-0 right-0 w-1/2 h-full bg-cover bg-center opacity-25"
               style={{
                 backgroundImage: `url('https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop')`,
-                transform: `translateY(${-(scrollY - 2000) * 0.15}px)`,
+                transform: `translateY(${-(scrollY - 3250) * 0.15}px)`,
                 clipPath: `polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%)`,
               }}
+            />
+
+            {/* Main background image overlay */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 z-0"
             />
             
             <div 
@@ -340,7 +348,7 @@ const YaatraSarthiHome = () => {
             >
               <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">History of Ujjain</h2>
               <div className="max-w-4xl mx-auto">
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-6 md:p-8 shadow-xl border">
+                <div className="bg-background/50 from-primary/5 to-secondary/5 rounded-2xl p-6 md:p-8 shadow-xl border">
                   <div className="space-y-4 md:space-y-6 text-base md:text-lg leading-relaxed">
                     <p>
                       Ujjain, one of the seven sacred cities (Sapta Puri) in Hinduism, holds a significant place in Indian history and spirituality. Known as Avantika in ancient times, it was the capital of the Avanti Kingdom and a major center of learning and culture.
@@ -361,9 +369,14 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* Testimonials */}
-          <section className="py-16 lg:py-24 bg-muted/50 w-full">
+          <section className="py-16 lg:py-24 bg-muted/50 w-full relative">
+            {/* Background image overlay */}
             <div 
-              className="w-full px-4 max-w-7xl mx-auto"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 z-0"
+            />
+            
+            <div 
+              className="w-full px-4 max-w-7xl mx-auto relative z-10"
               style={{
                 transform: `translateY(${Math.max(0, (scrollY - 2400) * 0.03)}px)`,
               }}
@@ -401,10 +414,13 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* Footer */}
-          <footer className="relative z-10 h-64 bg-gradient-to-r from-primary/80 to-secondary/80 rounded-2xl flex items-center justify-center">
-
-          {/* <footer className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground py-12 lg:py-16 w-full relative z-10"> */}
-            <div className="w-full px-4 max-w-7xl mx-auto">
+          <footer className="relative z-10 bg-gradient-to-r from-primary/90 to-secondary/90 text-primary-foreground py-12 lg:py-16 w-full">
+            {/* Background image overlay */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 z-1"
+            />
+            
+            <div className="w-full px-4 max-w-7xl mx-auto relative z-10">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
                 <div>
                   <h3 className="text-xl font-bold mb-4">YaatraSarthi</h3>

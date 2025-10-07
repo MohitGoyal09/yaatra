@@ -7,6 +7,7 @@
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed-ujjain": "tsx prisma/seed-ujjain-data.ts",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:setup": "node setup-database.js"

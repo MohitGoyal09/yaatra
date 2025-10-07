@@ -23,7 +23,7 @@ import {
 interface SearchFilterProps {
   onSearch: (filters: SearchFormData) => void;
   isLoading?: boolean;
-  initialFilters?: Partial<SearchFormData>;
+  initialFilters?: SearchFormData;
 }
 
 export function SearchFilter({
@@ -40,11 +40,11 @@ export function SearchFilter({
     formState: { errors },
   } = useForm<SearchFormData>({
     resolver: zodResolver(searchSchema),
-    defaultValues: {
-      search: initialFilters?.search || "",
-      type: initialFilters?.type || "all",
-      category: initialFilters?.category || "all",
-      location: initialFilters?.location || "",
+    defaultValues: initialFilters || {
+      search: "",
+      type: "all",
+      category: "all",
+      location: "",
     },
   });
 

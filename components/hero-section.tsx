@@ -77,16 +77,41 @@ export function HeroSection({
 
           {/* Actions */}
           <div className="relative z-10 flex animate-appear justify-center gap-4 opacity-0 delay-300">
-            <div className="relative z-10 flex animate-appear justify-center gap-4 opacity-0 delay-300">
-              {actions.map((action, index) => (
-                <Button key={index} variant={action.variant} size="lg" asChild>
+            {actions.map((action, index) => {
+              // Handle glow variant with custom styling
+              if (action.variant === "glow") {
+                return (
+                  <div key={index} className="relative">
+                    <Button
+                      size="lg"
+                      asChild
+                      className="relative z-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                    >
+                      <a href={action.href} className="flex items-center gap-2">
+                        {action.icon}
+                        {action.text}
+                      </a>
+                    </Button>
+                    <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary to-primary/80 blur-sm opacity-50 animate-pulse" />
+                  </div>
+                );
+              }
+
+              // Handle other variants normally
+              return (
+                <Button
+                  key={index}
+                  variant={action.variant || "default"}
+                  size="lg"
+                  asChild
+                >
                   <a href={action.href} className="flex items-center gap-2">
                     {action.icon}
                     {action.text}
                   </a>
                 </Button>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Image with Glow */}

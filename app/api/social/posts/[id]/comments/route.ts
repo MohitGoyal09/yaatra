@@ -5,9 +5,10 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // GET - Fetch comments for a post
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // For now, allow unauthenticated access for testing
     // const { userId } = await auth();
     // if (!userId) {
@@ -15,7 +16,7 @@ export async function GET(
     // }
 
     const comments = await prisma.postComment.findMany({
-      where: { postId: params.id },
+      where: { postId: id },
       include: {
         user: {
           select: {
@@ -45,9 +46,10 @@ export async function GET(
 // POST - Add a comment to a post
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // For now, allow unauthenticated access for testing
     // const { userId } = await auth();
     const { content } = await req.json();
@@ -70,7 +72,7 @@ export async function POST(
 
     // Check if post exists
     const post = await prisma.socialPost.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, userId: true },
     });
 
@@ -81,7 +83,7 @@ export async function POST(
     // Create the comment
     const comment = await prisma.postComment.create({
       data: {
-        postId: params.id,
+        postId: id,
         userId: appUser.id,
         content: content.trim(),
       },

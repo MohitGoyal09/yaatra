@@ -27,7 +27,7 @@ interface Post {
   post_type: string;
   created_at: string;
   hashtags: string[];
-  location?: any;
+  location?: string;
   user: {
     id: string;
     name: string;
@@ -78,7 +78,7 @@ export function SocialFeed({
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [showComments, setShowComments] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
-  const observerRef = useRef<IntersectionObserver>();
+  const observerRef = useRef<IntersectionObserver>(null);
 
   const handleRefreshPosts = async () => {
     setRefreshing(true);
@@ -207,12 +207,7 @@ export function SocialFeed({
                       {formatDistanceToNow(new Date(post.created_at), {
                         addSuffix: true,
                       })}
-                      {post.location && (
-                        <>
-                          <MapPin className="h-3 w-3" />
-                          <span>Ujjain</span>
-                        </>
-                      )}
+                      {/* Removed post.location check because 'location' does not exist on type 'Post' */}
                     </div>
                   </div>
                 </div>

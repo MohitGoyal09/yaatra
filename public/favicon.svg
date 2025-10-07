@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5A623;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#D0743C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B4513;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Simplified U shape -->
+  <path d="M 8 6 Q 4 4, 2 6 Q 1 10, 2 14 Q 4 18, 8 19 Q 12 20, 16 19 Q 20 18, 24 19 Q 28 18, 30 14 Q 31 10, 30 6 Q 28 4, 24 6 Q 20 8, 16 8 Q 12 8, 8 6 Z" 
+        fill="url(#faviconGradient)"/>
+  
+  <!-- Central dot -->
+  <circle cx="16" cy="10" r="2" fill="#FFFFFF"/>
+  
+  <!-- Simplified wheel -->
+  <circle cx="16" cy="24" r="6" fill="none" stroke="url(#faviconGradient)" stroke-width="1.5"/>
+  <line x1="16" y1="18" x2="16" y2="30" stroke="url(#faviconGradient)" stroke-width="1"/>
+  <line x1="10" y1="24" x2="22" y2="24" stroke="url(#faviconGradient)" stroke-width="1"/>
+  <circle cx="16" cy="24" r="1.5" fill="url(#faviconGradient)"/>
+</svg>

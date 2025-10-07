@@ -17,6 +17,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Icons } from "@/components/ui/icons";
 
 // Define the navigation links once for easy maintenance
 const navLinks = [
@@ -80,17 +81,64 @@ export function AppNavbar() {
       <div className="mx-auto max-w-6xl px-4">
         {/* DESKTOP/MOBILE HEADER ROW */}
         <div className="flex h-14 items-center justify-between gap-3">
-          {/* Logo */}
-          <Link href="/" className="text-base font-semibold z-50">
-            YaatraSarthi
-          </Link>
-
-          {/* Desktop Navigation (Hidden on small screens) */}
-          <NavigationMenu className="hidden lg:flex" viewport={false}>
-            <NavLinks />
-          </NavigationMenu>
-
-          {/* Controls and Mobile Menu Button */}
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 text-base font-semibold">
+              <Icons.logo className="h-8 w-8" />
+              <span>YaatraSarthi</span>
+            </Link>
+            <NavigationMenu viewport={false}>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/dashboard">Dashboard</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/leaderboard">Leaderboard</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/chat">Sarthi</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/map">Live Karma Map</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/social">Social Feed</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href="/lost-found">Lost & Found</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
           <div className="flex items-center gap-2">
             {/* Desktop User Controls (Visible on medium/large screens) */}
             <div className="hidden sm:flex">

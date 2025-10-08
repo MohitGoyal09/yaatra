@@ -348,7 +348,7 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* Gallery with revealing effect */}
-          <section className="py-16 lg:py-24 w-full relative bg-background/25 backdrop-blur-[2px]">
+          <section className="py-16 lg:py-24 mb-5 w-full relative bg-background/25 backdrop-blur-[2px]">
             {/* Background image overlay */}
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 z-0"
@@ -426,22 +426,27 @@ const YaatraSarthiHome = () => {
               </div>
 
               {/* Moving Background Images */}
-              <div className="relative h-32 mt-8 overflow-hidden rounded-2xl">
-                <div className="absolute inset-0 flex animate-scroll">
+              <div className="relative h-32 mt-15 opacity-100 overflow-hidden rounded-2xl bg-background/50 backdrop-blur-[2px]">
+                {/* Background image overlay */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 z-0"
+                />
+                
+                <div className="absolute inset-0 flex animate-scroll relative z-10">
                   {[...galleryImages, ...galleryImages].map((img, idx) => (
                     <div key={idx} className="flex-shrink-0 w-60 h-32 relative">
                       <img
                         src={img.url}
                         alt={img.title}
-                        className="w-full h-full object-cover opacity-60 hover:opacity-80 transition-opacity"
+                        className="w-full h-full object-cover opacity-100 hover:opacity-100 transition-opacity"
                       />
                     </div>
                   ))}
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <p className="text-foreground font-bold text-lg md:text-xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 flex items-center justify-center relative z-20">
+                  {/* <p className="text-foreground font-bold text-lg md:text-xl">
                     Explore Sacred Ujjain
-                  </p>
+                  </p> */}
                 </div>
               </div>
 
@@ -465,15 +470,15 @@ const YaatraSarthiHome = () => {
           </section>
 
           {/* History section with window effect */}
-          <section className="py-16 lg:py-24 w-full relative bg-background/50 backdrop-blur-[2px]">
+          <section className="py-16 lg:py-24 mt-30 w-full relative bg-background/40 backdrop-blur-[2px]">
             {/* Background window for history */}
             <div 
-              className="absolute top-0 right-0 w-1/2 h-full bg-cover bg-center opacity-25"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop')`,
-                transform: `translateY(${-(scrollY - 3250) * 0.15}px)`,
-                clipPath: `polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%)`,
-              }}
+              className="absolute top-40 right-0 w-1/2 h-full bg-cover bg-center opacity-25"
+              // style={{
+              //   backgroundImage: `url('https://images.unsplash.com/photo-1548013146-72479768bada?w=800&h=600&fit=crop')`,
+              //   transform: `translateY(${-(scrollY - 3250) * 0.15}px)`,
+              //   clipPath: `polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%)`,
+              // }}
             />
 
             {/* Main background image overlay */}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, Plus, Shield, MapPin, Phone, Mail } from "lucide-react";
+import { AlertTriangle, Plus, Shield, MapPin, Phone, Mail, Clock, Eye } from "lucide-react";
 import { CrimeReportForm } from "@/components/crime-report/crime-report-form";
 import {
   crimeReportSchema,
@@ -45,7 +45,6 @@ export default function CrimeReportsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load crime reports
   const loadReports = async () => {
     setLoading(true);
     try {
@@ -130,9 +129,7 @@ export default function CrimeReportsPage() {
         console.log("✅ Success! Report created:", data.report);
         // Add the new report to the list
         setReports((prev) => [data.report, ...prev]);
-        // Switch to browse tab to show the new report
         setActiveTab("browse");
-        // Show success message
         alert("Crime report submitted successfully! +15 points awarded");
       } else {
         console.error("❌ API returned error:", data.error);
@@ -182,145 +179,279 @@ export default function CrimeReportsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Community Safety Reports
-        </h1>
-        <p className="text-gray-600">
-          Report crimes and help keep our community safe. All reports are taken
-          seriously.
-        </p>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="browse" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Browse Reports
-          </TabsTrigger>
-          <TabsTrigger value="report" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Report Crime
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="browse" className="mt-6">
-          <div className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-2">Loading reports...</span>
+    <div className="min-h-screen bg-background text-foreground relative">
+      <div
+        className="fixed inset-0 bg-cover bg-center opacity-20 z-0"
+        style={{ backgroundImage: `url('/crime_report.jpg')` }}
+      ></div>
+      <div className="relative z-10">
+        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-12 mb-8">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center mb-4">
+              <Shield className="h-16 w-16 mr-4" />
+              <div>
+                <h1 className="text-4xl font-bold mb-2">Community Safety Reports</h1>
+                <p className="text-white/90 text-lg">
+                  Report crimes and help keep our community safe. All reports are taken seriously.
+                </p>
               </div>
-            ) : reports.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Shield className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No Crime Reports Yet
-                  </h3>
-                  <p className="text-gray-600 text-center mb-4">
-                    Be the first to help make our community safer by reporting
-                    any incidents.
-                  </p>
-                  <Button onClick={() => setActiveTab("report")}>
-                    Report a Crime
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              reports.map((report) => (
-                <Card
-                  key={report.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">
-                          {getCrimeTypeIcon(report.crime_type)}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg capitalize">
-                            {report.crime_type.replace("_", " ")}
-                          </CardTitle>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                              className={getSeverityColor(report.severity)}
-                            >
-                              {report.severity}
-                            </Badge>
-                            <Badge variant="outline">{report.status}</Badge>
-                          </div>
-                        </div>
+            </div>
+          </div>
+        </div>
+
+        <main className="container mx-auto px-4 pb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="browse" className="flex items-center gap-2 text-lg py-3">
+                <Eye className="h-5 w-5" />
+                Browse Reports
+              </TabsTrigger>
+              <TabsTrigger value="report" className="flex items-center gap-2 text-lg py-3">
+                <Plus className="h-5 w-5" />
+                Report Crime
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="browse">
+              <div className="space-y-6">
+                {loading ? (
+                  <Card className="border-border">
+                    <CardContent className="flex items-center justify-center py-16">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
+                        <span className="text-lg text-muted-foreground">Loading reports...</span>
                       </div>
-                      <div className="text-right text-sm text-gray-500">
-                        {new Date(report.created_at).toLocaleDateString()}
+                    </CardContent>
+                  </Card>
+                ) : reports.length === 0 ? (
+                  <Card className="border-border shadow-lg ">
+                    <CardContent className="flex flex-col items-center justify-center py-16">
+                      <div className="bg-muted rounded-full mb-6 ">
+                        <Shield className="h-16 w-16 text-muted-foreground" />
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{report.description}</p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-gray-600">{report.location}</span>
-                      </div>
-
-                      {report.incident_date && (
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-600">
-                            {new Date(report.incident_date).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-
-                      {!report.is_anonymous && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-600">
-                              {report.contact_phone}
-                            </span>
-                          </div>
-
-                          {report.contact_email && (
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-gray-500" />
-                              <span className="text-gray-600">
-                                {report.contact_email}
+                      <h3 className="text-2xl font-bold text-foreground mb-3">
+                        No Crime Reports Yet
+                      </h3>
+                      <p className="text-muted-foreground text-center mb-6 max-w-md">
+                        Be the first to help make our community safer by reporting any incidents.
+                      </p>
+                      <Button
+                        onClick={() => setActiveTab("report")}
+                        className="bg-primary hover:bg-primary/90 text-lg px-8 py-3"
+                      >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Report a Crime
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-6">
+                    {reports.map((report) => (
+                      <Card
+                        key={report.id}
+                        className="border-border hover:shadow-xl transition-all duration-300"
+                      >
+                        <CardHeader className="pb-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-lg">
+                                <div className="text-4xl">
+                                  {getCrimeTypeIcon(report.crime_type)}
+                                </div>
+                              </div>
+                              <div>
+                                <CardTitle className="text-2xl capitalize mb-2">
+                                  {report.crime_type.replace("_", " ")}
+                                </CardTitle>
+                                <div className="flex items-center gap-3">
+                                  <Badge
+                                    className={`${getSeverityColor(report.severity)} px-3 py-1 text-sm font-semibold`}
+                                  >
+                                    {report.severity.toUpperCase()}
+                                  </Badge>
+                                  <Badge variant="outline" className="px-3 py-1 text-sm">
+                                    {report.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                                <Clock className="h-4 w-4" />
+                                <span className="text-sm">
+                                  {new Date(report.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(report.created_at).toLocaleTimeString()}
                               </span>
                             </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="bg-muted/50 rounded-lg p-4 mb-4">
+                            <p className="text-foreground leading-relaxed">{report.description}</p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="flex items-center gap-3 p-3 bg-card rounded-lg border">
+                              <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Location</p>
+                                <p className="text-sm font-medium text-foreground">{report.location}</p>
+                              </div>
+                            </div>
+
+                            {report.incident_date && (
+                              <div className="flex items-center gap-3 p-3 bg-card rounded-lg border">
+                                <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Incident Date</p>
+                                  <p className="text-sm font-medium text-foreground">
+                                    {new Date(report.incident_date).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {!report.is_anonymous && (
+                              <>
+                                <div className="flex items-center gap-3 p-3 bg-card rounded-lg border">
+                                  <Phone className="h-5 w-5 text-green-500 flex-shrink-0" />
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Contact Phone</p>
+                                    <p className="text-sm font-medium text-foreground">
+                                      {report.contact_phone}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {report.contact_email && (
+                                  <div className="flex items-center gap-3 p-3 bg-card rounded-lg border">
+                                    <Mail className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Contact Email</p>
+                                      <p className="text-sm font-medium text-foreground">
+                                        {report.contact_email}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          {report.image_url && (
+                            <div className="mt-4">
+                              <p className="text-sm font-semibold text-muted-foreground mb-2">Evidence Photo:</p>
+                              <img
+                                src={report.image_url}
+                                alt="Evidence"
+                                className="w-full max-h-96 object-cover rounded-lg shadow-md"
+                              />
+                            </div>
                           )}
-                        </>
-                      )}
-                    </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
 
-                    {report.image_url && (
-                      <div className="mt-4">
-                        <img
-                          src={report.image_url}
-                          alt="Evidence"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
+            <TabsContent value="report">
+              <Card className="border-border shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 items-center">
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Shield className="h-7 w-7 text-primary" />
+                    Submit Crime Report
+                  </CardTitle>
+                  <p className="text-muted-foreground mt-2">
+                    Fill out the form below to report a crime. Your report helps keep our community safe.
+                  </p>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <CrimeReportForm
+                    onSubmit={handleSubmitReport}
+                    isLoading={submitting}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </main>
+
+        <footer className="relative z-10 bg-gradient-to-r from-primary/90 to-secondary/90 text-primary-foreground py-12 lg:py-16 w-full">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-4 gap-8 mb-8">
+              <div>
+                <h3 className="text-xl font-bold mb-4">YaatraSarthi</h3>
+                <p className="text-green-100">
+                  Your trusted companion for spiritual journeys in Ujjain
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold mb-4">Quick Links</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <a href="/about" className="text-green-100 hover:text-white transition-colors">
+                      About Us
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/services" className="text-green-100 hover:text-white transition-colors">
+                      Services
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/contact" className="text-green-100 hover:text-white transition-colors">
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold mb-4">Resources</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <a href="/faq" className="text-green-100 hover:text-white transition-colors">
+                      FAQ
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/guide" className="text-green-100 hover:text-white transition-colors">
+                      Travel Guide
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/emergency" className="text-green-100 hover:text-white transition-colors">
+                      Emergency
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold mb-4">Legal</h4>
+                <ul className="space-y-2">
+                  <li>
+                    <a href="/privacy" className="text-green-100 hover:text-white transition-colors">
+                      Privacy Policy
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/terms" className="text-green-100 hover:text-white transition-colors">
+                      Terms of Service
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="border-t border-green-600 pt-8 text-center text-green-100">
+              <p>&copy; 2025 YaatraSarthi. All rights reserved.</p>
+            </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="report" className="mt-6">
-          <CrimeReportForm
-            onSubmit={handleSubmitReport}
-            isLoading={submitting}
-          />
-        </TabsContent>
-      </Tabs>
+        </footer>
+      </div>
     </div>
   );
 }

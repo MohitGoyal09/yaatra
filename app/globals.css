@@ -240,6 +240,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
 
   body {
     @apply bg-background text-foreground;
@@ -1081,5 +1086,113 @@
   .clip-path-reveal {
     clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%);
     will-change: clip-path;
+  }
+
+  /* Force full viewport width for video section */
+  .hero-video-section {
+    width: 100vw !important;
+    min-height: 100vh !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    overflow: hidden !important;
+  }
+
+  .hero-video {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    z-index: 0 !important;
+  }
+
+  .hero-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1 !important;
+  }
+
+  .hero-content {
+    position: relative !important;
+    z-index: 2 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    color: white !important;
+    padding: 0 1rem !important;
+  }
+
+  /* Remove any container constraints globally for video section */
+  .video-container-override {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Force full viewport width for video section */
+  .hero-video-section {
+    width: 100vw !important;
+    min-height: 100vh !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    overflow: hidden !important;
+  }
+
+  .hero-video {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    z-index: 0 !important;
+  }
+
+  .hero-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1 !important;
+  }
+
+  .hero-content {
+    position: relative !important;
+    z-index: 2 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    color: white !important;
+    padding: 0 1rem !important;
+  }
+
+  /* Remove any container constraints globally for video section */
+  .video-container-override {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }

@@ -180,7 +180,7 @@ export default function LiveDarshanPage({
     UJJAIN_TEMPLES[selectedTemple as keyof typeof UJJAIN_TEMPLES];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-saffron-900 via-orange-900 to-red-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Particle.js Background Elements */}
       {showFloatingElements && (
         <>
@@ -195,30 +195,28 @@ export default function LiveDarshanPage({
       {/* Celebration Particles */}
       {celebrationMode && <CelebrationParticles intensity="high" />}
 
-      {/* Spiritual Header */}
-      <div className="bg-gradient-to-r from-saffron-900/30 via-orange-800/30 to-red-900/30 backdrop-blur-md border-b border-saffron-400/20 p-4 relative z-20">
+      {/* Header */}
+      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10 p-4 relative z-20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-saffron-400 rounded-full animate-pulse shadow-lg shadow-saffron-400/50"></div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
-              Live Darshan
-            </h1>
-            <Badge className="bg-saffron-600 hover:bg-saffron-700 text-white animate-pulse shadow-lg shadow-saffron-500/30">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <h1 className="text-2xl font-bold text-white">Live Darshan</h1>
+            <Badge variant="destructive" className="animate-pulse">
               LIVE
             </Badge>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-white bg-saffron-800/30 px-3 py-1 rounded-full border border-saffron-400/20">
-              <Users className="w-4 h-4 text-saffron-200" />
-              <span className="text-sm text-saffron-100">
+            <div className="flex items-center gap-2 text-white">
+              <Users className="w-4 h-4" />
+              <span className="text-sm">
                 {currentTemple.liveViewers.toLocaleString()} watching
               </span>
             </div>
 
-            <div className="flex items-center gap-2 bg-gradient-to-r from-saffron-600/30 to-orange-600/30 px-4 py-2 rounded-full border border-saffron-400/30 shadow-lg shadow-saffron-500/20">
-              <Sparkles className="w-4 h-4 text-saffron-300" />
-              <span className="text-saffron-200 font-semibold">
+            <div className="flex items-center gap-2 bg-orange-500/20 px-3 py-1 rounded-full">
+              <Sparkles className="w-4 h-4 text-orange-400" />
+              <span className="text-orange-400 font-semibold">
                 {punyaPoints} Punya
               </span>
             </div>
@@ -259,7 +257,7 @@ export default function LiveDarshanPage({
       <div className="max-w-7xl mx-auto p-4 relative z-10">
         {/* Main Video Area - Full Width */}
         <div className="mb-6">
-          <Card className="bg-gradient-to-br from-saffron-900/20 via-orange-800/20 to-red-900/20 backdrop-blur-md border-saffron-400/20 overflow-hidden relative shadow-2xl shadow-saffron-500/10">
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10 overflow-hidden relative">
             <CardContent className="p-0">
               <div className="relative aspect-video bg-black">
                 {/* Video Player - Hidden YouTube UI */}
@@ -297,14 +295,14 @@ export default function LiveDarshanPage({
                 )}
 
                 {/* Temple Info Overlay */}
-                <div className="absolute top-4 left-4 bg-gradient-to-br from-saffron-800/90 via-orange-800/90 to-red-800/90 backdrop-blur-md text-white p-4 rounded-xl border border-saffron-400/30 shadow-2xl shadow-saffron-500/20">
+                <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm text-white p-4 rounded-lg">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{currentTemple.icon}</span>
                     <div>
-                      <h3 className="font-bold text-xl bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                      <h3 className="font-bold text-xl">
                         {currentTemple.name}
                       </h3>
-                      <p className="text-sm text-saffron-200">
+                      <p className="text-sm opacity-80">
                         {currentTemple.description}
                       </p>
                     </div>
@@ -312,28 +310,25 @@ export default function LiveDarshanPage({
                 </div>
 
                 {/* Punya Points Counter */}
-                <div className="absolute top-4 right-4 bg-gradient-to-r from-saffron-600/95 to-orange-600/95 backdrop-blur-md text-white px-4 py-2 rounded-full border border-saffron-400/30 shadow-lg shadow-saffron-500/30">
+                <div className="absolute top-4 right-4 bg-orange-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-saffron-200" />
-                    <span className="font-bold text-saffron-100">
-                      {punyaPoints} Punya
-                    </span>
+                    <Sparkles className="w-4 h-4" />
+                    <span className="font-bold">{punyaPoints} Punya</span>
                   </div>
                 </div>
 
-                {/* Spiritual Action Controls */}
+                {/* Interactive Controls */}
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-saffron-900/90 via-orange-800/90 to-red-900/90 backdrop-blur-md p-4 rounded-2xl border border-orange-400/30 shadow-2xl">
-                    {/* Volume Control */}
+                  <div className="flex items-center gap-2 bg-black/80 backdrop-blur-sm p-3 rounded-full">
+                    {/* Mute/Unmute Button */}
                     <Button
                       onClick={() => setIsMuted(!isMuted)}
-                      className={`devotional-button transition-all duration-300 ${
+                      className={`devotional-button ${
                         isMuted
-                          ? "bg-saffron-600 hover:bg-saffron-700 shadow-lg shadow-saffron-500/30"
-                          : "bg-white/20 hover:bg-white/30 border border-white/20"
+                          ? "bg-orange-500 hover:bg-orange-600"
+                          : "bg-white/20 hover:bg-white/30"
                       } text-white p-3 rounded-full`}
                       size="sm"
-                      title={isMuted ? "Unmute" : "Mute"}
                     >
                       {isMuted ? (
                         <VolumeX className="w-4 h-4" />
@@ -342,54 +337,103 @@ export default function LiveDarshanPage({
                       )}
                     </Button>
 
-                    {/* Diya (Oil Lamp) */}
+                    {/* Devotional Action Buttons */}
                     <Button
                       onClick={() => handleDevotionalAction("diya", 5)}
-                      className="devotional-button bg-gradient-to-br from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white p-3 rounded-full shadow-lg shadow-orange-500/30 transition-all duration-300 hover:scale-105"
+                      className="devotional-button bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full"
                       size="sm"
-                      title="Light Diya (+5 Punya)"
+                      title="Light Diya (+5 points)"
                     >
                       🪔
                     </Button>
 
-                    {/* Bell */}
+                    <Button
+                      onClick={() => handleDevotionalAction("thali", 10)}
+                      className="devotional-button bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded-full"
+                      size="sm"
+                      title="Pooja Thali (+10 points)"
+                    >
+                      🥘
+                    </Button>
+
                     <Button
                       onClick={() => handleDevotionalAction("bell", 15)}
-                      className="devotional-button bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white p-3 rounded-full shadow-lg shadow-yellow-500/30 transition-all duration-300 hover:scale-105"
+                      className="devotional-button bg-yellow-400 hover:bg-yellow-500 text-white p-3 rounded-full"
                       size="sm"
-                      title="Ring Temple Bell (+15 Punya)"
+                      title="Ring Bell (+15 points)"
                     >
                       🔔
                     </Button>
 
-                    {/* Tulsi Leaves */}
                     <Button
                       onClick={() => handleDevotionalAction("tulsi", 8)}
-                      className="devotional-button bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-3 rounded-full shadow-lg shadow-green-500/30 transition-all duration-300 hover:scale-105"
+                      className="devotional-button bg-green-500 hover:bg-green-600 text-white p-3 rounded-full"
                       size="sm"
-                      title="Offer Tulsi Leaves (+8 Punya)"
+                      title="Tulsi Leaves (+8 points)"
                     >
                       🌿
                     </Button>
 
-                    {/* Incense */}
+                    <Button
+                      onClick={() => handleDevotionalAction("conch", 12)}
+                      className="devotional-button bg-white/20 hover:bg-white/30 text-white p-3 rounded-full"
+                      size="sm"
+                      title="Conch Shell (+12 points)"
+                    >
+                      🐚
+                    </Button>
+
+                    <Button
+                      onClick={() => handleDevotionalAction("marigold", 7)}
+                      className="devotional-button bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-full"
+                      size="sm"
+                      title="Marigold Flower (+7 points)"
+                    >
+                      🌼
+                    </Button>
+
                     <Button
                       onClick={() => handleDevotionalAction("agarbati", 12)}
-                      className="devotional-button bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white p-3 rounded-full shadow-lg shadow-amber-500/30 transition-all duration-300 hover:scale-105"
+                      className="devotional-button bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-full"
                       size="sm"
-                      title="Light Incense (+12 Punya)"
+                      title="Incense Stick (+12 points)"
                     >
                       🪔
                     </Button>
 
-                    {/* Share Darshan */}
                     <Button
                       onClick={() => handleDevotionalAction("share", 20)}
-                      className="devotional-button bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white p-3 rounded-full shadow-lg shadow-purple-500/30 transition-all duration-300 hover:scale-105"
+                      className="devotional-button bg-green-500 hover:bg-green-600 text-white p-3 rounded-full"
                       size="sm"
-                      title="Share Darshan (+20 Punya)"
+                      title="Share Darshan (+20 points)"
                     >
                       <Share2 className="w-4 h-4" />
+                    </Button>
+
+                    {/* Interactive Elements Toggle Button */}
+                    <Button
+                      onClick={() =>
+                        setShowInteractiveElements(!showInteractiveElements)
+                      }
+                      className="devotional-button bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-full"
+                      size="sm"
+                      title="Toggle Interactive Elements"
+                    >
+                      🪔
+                    </Button>
+
+                    {/* Refresh Button */}
+                    <Button
+                      onClick={() => {
+                        setActiveEffect("watching");
+                        setShowEffects(true);
+                        setTimeout(() => setShowEffects(false), 2000);
+                      }}
+                      className="devotional-button bg-white/20 hover:bg-white/30 text-white p-3 rounded-full"
+                      size="sm"
+                      title="Refresh Effects"
+                    >
+                      <RotateCcw className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -412,48 +456,48 @@ export default function LiveDarshanPage({
           </Card>
         </div>
 
-        {/* Spiritual Community Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-saffron-800/30 via-orange-700/30 to-red-800/30 backdrop-blur-md border-saffron-400/20 shadow-xl shadow-saffron-500/10">
-            <CardContent className="p-6">
-              <h4 className="font-semibold mb-4 text-lg bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+        {/* Community Features */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+            <CardContent className="p-4">
+              <h4 className="text-white font-semibold mb-3">
                 Community Prayer
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm text-saffron-200">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm text-white/80">
                   <span>Next Aarti</span>
-                  <span className="font-semibold">6:00 PM</span>
+                  <span>6:00 PM</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-saffron-200">
+                <div className="flex items-center justify-between text-sm text-white/80">
                   <span>Community Points</span>
-                  <span className="text-saffron-300 font-semibold">
+                  <span className="text-orange-400 font-semibold">
                     +50 Punya
                   </span>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-saffron-600 to-orange-600 hover:from-saffron-700 hover:to-orange-700 text-white shadow-lg shadow-saffron-500/30 transition-all duration-300">
+                <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
                   Join Community Aarti
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-saffron-800/30 via-orange-700/30 to-red-800/30 backdrop-blur-md border-saffron-400/20 shadow-xl shadow-saffron-500/10">
-            <CardContent className="p-6">
-              <h4 className="font-semibold mb-4 text-lg bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+          <Card className="bg-black/20 backdrop-blur-sm border-white/10">
+            <CardContent className="p-4">
+              <h4 className="text-white font-semibold mb-3">
                 Spiritual Journey
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm text-saffron-200">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm text-white/80">
                   <span>Darshan Time</span>
-                  <span className="font-semibold">{formatTime(watchTime)}</span>
+                  <span>{formatTime(watchTime)}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-saffron-200">
+                <div className="flex items-center justify-between text-sm text-white/80">
                   <span>Points Earned</span>
-                  <span className="text-saffron-300 font-semibold">
+                  <span className="text-orange-400 font-semibold">
                     {punyaPoints} Punya
                   </span>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/30 transition-all duration-300">
+                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
                   View Progress
                 </Button>
               </div>

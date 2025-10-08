@@ -43,7 +43,7 @@ export function OpenStreetMap({ className = "" }: OpenStreetMapProps) {
   const [zoom, setZoom] = useState(14);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Ujjain key locations with accurate coordinates
+  // Ujjain key locations with realistic coordinates
   const keyLocations = [
     {
       name: "Mahakaleshwar Temple",
@@ -71,12 +71,12 @@ export function OpenStreetMap({ className = "" }: OpenStreetMapProps) {
       type: "temple" as const,
     },
     {
-      name: "Ujjain Junction",
-      lat: 23.173,
-      lng: 75.79,
+      name: "Ujjain Market",
+      lat: 23.177,
+      lng: 75.787,
       type: "market" as const,
     },
-    { name: "Shipra Ghat", lat: 23.175, lng: 75.788, type: "ghat" as const },
+    { name: "Shipra River", lat: 23.17, lng: 75.78, type: "ghat" as const },
     {
       name: "Vikram Kirti Mandir",
       lat: 23.183,
@@ -90,18 +90,6 @@ export function OpenStreetMap({ className = "" }: OpenStreetMapProps) {
       type: "temple" as const,
     },
     { name: "Gopal Mandir", lat: 23.179, lng: 75.786, type: "temple" as const },
-    {
-      name: "Freeganj Market",
-      lat: 23.178,
-      lng: 75.789,
-      type: "market" as const,
-    },
-    {
-      name: "Bade Ganeshji",
-      lat: 23.177,
-      lng: 75.791,
-      type: "temple" as const,
-    },
   ];
 
   // Generate realistic population data
@@ -242,185 +230,326 @@ export function OpenStreetMap({ className = "" }: OpenStreetMapProps) {
   ).length;
 
   return (
-    <div className={`w-full h-full ${className}`}>
-      {/* OpenStreetMap Container */}
-      <div className="relative w-full h-full">
-        <div
-          ref={mapRef}
-          className="w-full h-full bg-gradient-to-br from-slate-100 to-blue-100 dark:from-slate-800 dark:to-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 relative overflow-hidden"
-        >
-          {/* OpenStreetMap iframe with Ujjain focus */}
-          <iframe
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-              mapCenter.lng - 0.015
-            },${mapCenter.lat - 0.015},${mapCenter.lng + 0.015},${
-              mapCenter.lat + 0.015
-            }&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
-            className="absolute inset-0 w-full h-full border-0 rounded-lg"
-            title="Ujjain OpenStreetMap"
-            loading="lazy"
-          />
-
-          {/* Population Overlay */}
-          <div className="absolute inset-0 pointer-events-none">
-            {populationData.map((point) => (
-              <div
-                key={point.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer group z-10"
-                style={{
-                  left: `${50 + (point.lng - mapCenter.lng) * 3000}%`,
-                  top: `${50 + (point.lat - mapCenter.lat) * 3000}%`,
-                }}
-                onClick={() => setSelectedArea(point)}
-              >
-                {/* Population Circle */}
-                <div
-                  className={`${getPopulationSize(
-                    point.population
-                  )} rounded-full ${getDensityColor(
-                    point.density
-                  )} opacity-85 hover:opacity-100 transition-all duration-300 flex items-center justify-center text-white text-xs font-bold shadow-lg hover:scale-110 animate-pulse border-2 border-white`}
-                >
-                  {getLocationIcon(point.type)}
-                </div>
-
-                {/* Population Count Tooltip */}
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-3 py-2 rounded-lg text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-lg">
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{point.population}</div>
-                    <div className="text-xs text-gray-300">{point.name}</div>
-                  </div>
-                  {/* Arrow */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Map Controls */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
-            <Button
-              onClick={() => setZoom((prev) => Math.min(prev + 1, 18))}
-              className="w-10 h-10 p-0 bg-white/95 hover:bg-white shadow-lg border border-slate-200 text-slate-700"
-              size="sm"
-              title="Zoom In"
-            >
-              +
-            </Button>
-            <Button
-              onClick={() => setZoom((prev) => Math.max(prev - 1, 10))}
-              className="w-10 h-10 p-0 bg-white/95 hover:bg-white shadow-lg border border-slate-200 text-slate-700"
-              size="sm"
-              title="Zoom Out"
-            >
-              -
-            </Button>
-            <Button
-              onClick={() => {
-                setMapCenter({ lat: 23.1765, lng: 75.7885 });
-                setZoom(14);
-              }}
-              className="w-10 h-10 p-0 bg-white/95 hover:bg-white shadow-lg border border-slate-200 text-slate-700"
-              size="sm"
-              title="Reset to Ujjain Center"
-            >
-              <Navigation className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Map Legend */}
-          <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 z-20">
-            <h4 className="font-semibold text-sm mb-3 text-slate-800 dark:text-slate-200">
-              Population Density
-            </h4>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-green-500 rounded-full shadow-sm"></div>
-                <span className="font-medium">Light (0-150)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-yellow-500 rounded-full shadow-sm"></div>
-                <span className="font-medium">Moderate (150-400)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-orange-500 rounded-full shadow-sm"></div>
-                <span className="font-medium">Busy (400-700)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-red-500 rounded-full shadow-sm"></div>
-                <span className="font-medium">Crowded (700+)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Loading Overlay */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 flex items-center justify-center z-30 rounded-lg">
-              <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-lg">
-                <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
-                <span className="text-slate-700 dark:text-slate-300">
-                  Updating population data...
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Selected Area Details Popup */}
-      {selectedArea && (
-        <div className="absolute top-4 left-4 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-lg shadow-xl border border-slate-200 dark:border-slate-600 p-4 max-w-sm z-30">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">
-              {getLocationIcon(selectedArea.type)}
-            </span>
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-100">
-                {selectedArea.name}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 capitalize">
-                {selectedArea.type}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-3">
-            <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Population
-              </p>
-              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {selectedArea.population}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Density
-              </p>
-              <Badge
-                className={`${getDensityColor(
-                  selectedArea.density
-                )} text-white text-xs`}
-              >
-                {getDensityText(selectedArea.density)}
+    <div className={`space-y-6 ${className}`}>
+      {/* Map Header with Live Stats */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-6 h-6 text-primary" />
+              <CardTitle className="text-2xl">
+                Ujjain Live Population Map
+              </CardTitle>
+              <Badge variant="destructive" className="animate-pulse">
+                LIVE
               </Badge>
             </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="w-4 h-4" />
+              <span>Updated: {lastUpdate.toLocaleTimeString()}</span>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Live Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-green-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Total People</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {totalPopulation.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-red-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Crowded Areas</p>
+                  <p className="text-xl font-bold text-red-600">
+                    {crowdedAreas}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-orange-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Busy Areas</p>
+                  <p className="text-xl font-bold text-orange-600">
+                    {busyAreas}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Active Locations
+                  </p>
+                  <p className="text-xl font-bold text-blue-600">
+                    {populationData.length}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-            Last updated: {selectedArea.lastUpdate.toLocaleTimeString()}
+          {/* OpenStreetMap Container */}
+          <div className="relative">
+            <div
+              ref={mapRef}
+              className="w-full h-96 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border-2 border-border relative overflow-hidden"
+            >
+              {/* OpenStreetMap iframe */}
+              <iframe
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                  mapCenter.lng - 0.01
+                },${mapCenter.lat - 0.01},${mapCenter.lng + 0.01},${
+                  mapCenter.lat + 0.01
+                }&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
+                className="absolute inset-0 w-full h-full border-0"
+                title="Ujjain OpenStreetMap"
+              />
+
+              {/* Population Overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                {populationData.map((point) => (
+                  <div
+                    key={point.id}
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer group"
+                    style={{
+                      left: `${50 + (point.lng - mapCenter.lng) * 5000}%`,
+                      top: `${50 + (point.lat - mapCenter.lat) * 5000}%`,
+                    }}
+                    onClick={() => setSelectedArea(point)}
+                  >
+                    {/* Population Circle */}
+                    <div
+                      className={`${getPopulationSize(
+                        point.population
+                      )} rounded-full ${getDensityColor(
+                        point.density
+                      )} opacity-80 hover:opacity-100 transition-all duration-300 flex items-center justify-center text-white text-xs font-bold shadow-lg hover:scale-110 animate-pulse border-2 border-white`}
+                    >
+                      {getLocationIcon(point.type)}
+                    </div>
+
+                    {/* Population Count */}
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-2 py-1 rounded text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {point.name}: {point.population}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Map Controls */}
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <Button
+                  onClick={() => setZoom((prev) => Math.min(prev + 1, 18))}
+                  className="w-10 h-10 p-0 bg-white/90 hover:bg-white shadow-lg"
+                  size="sm"
+                >
+                  +
+                </Button>
+                <Button
+                  onClick={() => setZoom((prev) => Math.max(prev - 1, 10))}
+                  className="w-10 h-10 p-0 bg-white/90 hover:bg-white shadow-lg"
+                  size="sm"
+                >
+                  -
+                </Button>
+                <Button
+                  onClick={() => {
+                    setMapCenter({ lat: 23.1765, lng: 75.7885 });
+                    setZoom(14);
+                  }}
+                  className="w-10 h-10 p-0 bg-white/90 hover:bg-white shadow-lg"
+                  size="sm"
+                  title="Reset View"
+                >
+                  <Navigation className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Map Legend */}
+              <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm p-3 rounded-lg shadow-lg">
+                <h4 className="font-semibold text-sm mb-2">
+                  Population Density
+                </h4>
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Light (0-150)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span>Moderate (150-400)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    <span>Busy (400-700)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>Crowded (700+)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Loading Overlay */}
+              {isLoading && (
+                <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>Updating population data...</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded text-xs">
-            <span className="font-semibold">Recommendation:</span>{" "}
-            {selectedArea.density === "crowded"
-              ? "Consider visiting during off-peak hours"
-              : selectedArea.density === "high"
-              ? "Moderate crowd expected"
-              : "Perfect time to visit!"}
+          {/* Control Buttons */}
+          <div className="flex items-center gap-2 mt-4">
+            <Button
+              onClick={() => {
+                setIsLoading(true);
+                setTimeout(() => {
+                  const data = generatePopulationData();
+                  setPopulationData(data);
+                  setLastUpdate(new Date());
+                  setIsLoading(false);
+                }, 1000);
+              }}
+              className="flex items-center gap-2"
+              size="sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Data
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Layers className="w-4 h-4" />
+              Toggle Layers
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Maximize2 className="w-4 h-4" />
+              Full Screen
+            </Button>
           </div>
-        </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected Area Details */}
+      {selectedArea && (
+        <Card className="animate-appear-zoom">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {getLocationIcon(selectedArea.type)} {selectedArea.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Current Population
+                </p>
+                <p className="text-2xl font-bold text-primary">
+                  {selectedArea.population}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Density Level</p>
+                <Badge
+                  className={`${getDensityColor(
+                    selectedArea.density
+                  )} text-white`}
+                >
+                  {getDensityText(selectedArea.density)}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Location Type</p>
+                <p className="font-semibold capitalize">{selectedArea.type}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Last Updated</p>
+                <p className="text-sm">
+                  {selectedArea.lastUpdate.toLocaleTimeString()}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm">
+                <span className="font-semibold">Recommendation:</span>{" "}
+                {selectedArea.density === "crowded"
+                  ? "Consider visiting during off-peak hours (early morning or late evening)"
+                  : selectedArea.density === "high"
+                  ? "Moderate crowd expected. Good time to visit with some patience"
+                  : "Perfect time to visit! Low crowd expected"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Population Trends */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Live Population Trends
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {populationData
+              .sort((a, b) => b.population - a.population)
+              .slice(0, 8)
+              .map((point, index) => (
+                <div
+                  key={point.id}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      {getLocationIcon(point.type)}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{point.name}</p>
+                      <p className="text-sm text-muted-foreground capitalize">
+                        {point.type}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-lg">{point.population}</p>
+                    <Badge
+                      className={`${getDensityColor(
+                        point.density
+                      )} text-white text-xs`}
+                    >
+                      {getDensityText(point.density)}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

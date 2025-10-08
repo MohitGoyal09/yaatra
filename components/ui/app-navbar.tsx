@@ -1,181 +1,190 @@
 "use client";
+
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react"; 
+// Removed useTranslations import to fix runtime error
+import {
+  MapIcon,
+  UsersIcon,
+  MessageSquareIcon,
+  BarChart3Icon,
+  CameraIcon,
+  SearchIcon,
+} from "lucide-react";
+
 import {
   NavigationMenu,
-  NavigationMenuItem, 
+  NavigationMenuContent,
+  NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Icons } from "@/components/ui/icons";
+// import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
-// Define the navigation links once for easy maintenance
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/chat", label: "Sarthi" },
-  { href: "/live-darshan", label: "🕉️ Live Darshan", highlight: true },
-  { href: "/map", label: "Live Karma Map" },
-  { href: "/social", label: "Social Feed" },
-  { href: "/lost-found", label: "Lost & Found" },
+const mainNavItems = [
+  {
+    title: "Map",
+    href: "/map",
+    icon: MapIcon,
+    description: "Interactive map with live updates",
+  },
+  {
+    title: "Social",
+    href: "/social",
+    icon: UsersIcon,
+    description: "Community posts and interactions",
+  },
+  {
+    title: "Chat",
+    href: "/chat",
+    icon: MessageSquareIcon,
+    description: "AI-powered chat assistance",
+  },
+];
+
+const utilityItems = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: BarChart3Icon,
+    description: "Analytics and insights",
+  },
+  {
+    title: "Live Darshan",
+    href: "/live-darshan",
+    icon: CameraIcon,
+    description: "Live temple darshan",
+  },
+  {
+    title: "Lost & Found",
+    href: "/lost-found",
+    icon: SearchIcon,
+    description: "Find lost items",
+  },
 ];
 
 export function AppNavbar() {
-  // State for mobile menu open/close
-  const [isOpen, setIsOpen] = React.useState(false); 
-
-  // Helper component for all the links (used in both desktop and mobile views)
-  const NavLinks = ({ isMobile = false }) => (
-    <NavigationMenuList 
-        // Force the list to stack vertically on mobile (or when isMobile is true)
-        className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row lg:space-x-1'}`}
-    >
-      {navLinks.map((link) => (
-        <NavigationMenuItem key={link.href}>
-          <NavigationMenuLink
-            asChild
-            className={`${navigationMenuTriggerStyle()} ${
-              link.highlight 
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg' 
-                : ''
-            }`}
-            onClick={() => setIsOpen(false)} // Close menu on link click (for mobile)
-          >
-            <Link href={link.href}>{link.label}</Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-      ))}
-    </NavigationMenuList>
-  );
-
-  // Helper component for the user/theme controls
-  const UserControls = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <div
-      className={`flex items-center gap-2 ${
-        isMobile ? "justify-start mt-4" : "" 
-      }`}
-    >
-      <SignedOut>
-        <SignInButton />
-        <SignUpButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <ModeToggle />
-    </div>
-  );
+  // Removed useTranslations usage to fix runtime error
 
   return (
-    <div className="w-full border-b bg-background sticky top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4">
-        {/* DESKTOP/MOBILE HEADER ROW */}
-        <div className="flex h-14 items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 text-base font-semibold">
-              <Icons.logo className="h-8 w-8" />
-              <span>YaatraSarthi</span>
-            </Link>
-            <NavigationMenu viewport={false}>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/dashboard">Dashboard</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/leaderboard">Leaderboard</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/chat">Sarthi</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/map">Live Karma Map</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/social">Social Feed</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/lost-found">Lost & Found</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+    <div className="flex items-center justify-between p-4 border-b">
+      {/* Logo */}
+      <div className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">Y</span>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Desktop User Controls (Visible on medium/large screens) */}
-            <div className="hidden sm:flex">
-                <UserControls />
-            </div>
-            
-            {/* Mobile Menu Button (Visible only on small screens) */}
-            <button
-              className="lg:hidden p-2 rounded-md hover:bg-muted/50 transition-colors"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle navigation menu"
+          <span className="font-bold text-lg">Yaatra</span>
+        </Link>
+      </div>
+
+      {/* Main Navigation */}
+      <NavigationMenu>
+        <NavigationMenuList>
+          {/* Main Features */}
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <li className="row-span-3">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none select-none focus:shadow-md"
+                      href="/"
+                    >
+                      <div className="mt-4 mb-2 text-lg font-medium">
+                        Yaatra
+                      </div>
+                      <p className="text-muted-foreground text-sm leading-tight">
+                        Your complete travel companion for spiritual journeys.
+                      </p>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+                {mainNavItems.map((item) => (
+                  <ListItem
+                    key={item.title}
+                    href={item.href}
+                    title={item.title}
+                    icon={item.icon}
+                  >
+                    {item.description}
+                  </ListItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          {/* Utilities */}
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[300px] gap-2">
+                {utilityItems.map((item) => (
+                  <ListItem
+                    key={item.title}
+                    href={item.href}
+                    title={item.title}
+                    icon={item.icon}
+                  >
+                    {item.description}
+                  </ListItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          {/* Direct Links */}
+          <NavigationMenuItem>
+            <NavigationMenuLink
+              asChild
+              className={navigationMenuTriggerStyle()}
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
+              <Link href="/leaderboard">Leaderboard</Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
 
-        {/* MOBILE MENU CONTENT (Dropdown) */}
-        <div
-          className={`lg:hidden transition-all duration-300 overflow-hidden ${
-            isOpen ? "max-h-96 py-4 border-t" : "max-h-0"
-          }`}
-        >
-          {/* FIX: Wrap NavLinks in NavigationMenu to satisfy the component requirement.
-            We use 'absolute' and 'w-full' to ensure it renders correctly even though
-            it's not functioning as a traditional desktop menu.
-          */}
-          <NavigationMenu viewport={false} className="w-full">
-            <NavLinks isMobile={true} />
-          </NavigationMenu>
-
-          {/* Mobile User Controls */}
-          <div className="mt-4 pt-4 border-t sm:hidden">
-            <UserControls isMobile={true} />
-          </div>
-        </div>
+      {/* Right Side Controls */}
+      <div className="flex items-center space-x-2">
+        {/* <LanguageSwitcher /> */}
+        <ModeToggle />
       </div>
     </div>
+  );
+}
+
+function ListItem({
+  title,
+  children,
+  href,
+  icon: Icon,
+  ...props
+}: React.ComponentPropsWithoutRef<"li"> & {
+  href: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <li {...props}>
+      <NavigationMenuLink asChild>
+        <Link
+          href={href}
+          className="flex items-center space-x-2 p-3 rounded-md hover:bg-accent"
+        >
+          {Icon && <Icon className="h-4 w-4" />}
+          <div>
+            <div className="text-sm leading-none font-medium">{title}</div>
+            <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+              {children}
+            </p>
+          </div>
+        </Link>
+      </NavigationMenuLink>
+    </li>
   );
 }

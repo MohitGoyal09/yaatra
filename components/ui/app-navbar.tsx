@@ -10,6 +10,8 @@ import {
   BarChart3Icon,
   CameraIcon,
   SearchIcon,
+  ShieldIcon,
+  MapPinIcon,
 } from "lucide-react";
 
 import {
@@ -126,6 +128,24 @@ export function AppNavbar() {
             <span>Leaderboard</span>
           </Link>
         </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/lost-found" className="flex items-center gap-2">
+            <SearchIcon className="h-4 w-4" />
+            <span>Lost & Found</span>
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/live-population-map" className="flex items-center gap-2">
+            <MapPinIcon className="h-4 w-4" />
+            <span>Live Population</span>
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/crime-reports" className="flex items-center gap-2">
+            <ShieldIcon className="h-4 w-4" />
+            <span>Crime Report</span>
+          </Link>
+        </Button>
       </div>
 
       {/* Mobile Navigation - Dropdown for smaller screens */}
@@ -152,6 +172,20 @@ export function AppNavbar() {
                     icon={SearchIcon}
                   >
                     View rankings and achievements
+                  </ListItem>
+                  <ListItem
+                    href="/live-population-map"
+                    title="Live Population"
+                    icon={MapPinIcon}
+                  >
+                    Real-time population density map
+                  </ListItem>
+                  <ListItem
+                    href="/crime-reports"
+                    title="Crime Report"
+                    icon={ShieldIcon}
+                  >
+                    Report and view crime incidents
                   </ListItem>
                 </ul>
               </NavigationMenuContent>

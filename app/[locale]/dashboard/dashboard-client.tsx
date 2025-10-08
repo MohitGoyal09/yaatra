@@ -10,11 +10,10 @@ import {
   Map,
   Camera,
   QrCode,
-  MapPin,
+  MapPin, Trophy, Target, Trophy, Target,
   Clock,
   Users,
   Zap,
-  Target,
   Award,
   Bell,
   Activity,
@@ -22,6 +21,12 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { OpenStreetMap } from "@/components/map/openstreet-map";
+import { Progress } from "@/components/ui/progress";
+import { DonutChart } from "@/components/ui/donut-chart";
+import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
+import { Progress } from "@/components/ui/progress";
+import { DonutChart } from "@/components/ui/donut-chart";
+import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
 
 interface DashboardClientProps {
   user: any;
@@ -41,6 +46,17 @@ interface DashboardClientProps {
     points: number;
   }>;
   rankTitle: string;
+  nextRankInfo: {
+    nextRank: string;
+    needed: number;
+    progress: number;
+  };
+  chartData: Array<{
+    category: string;
+    value: number;
+    fill: string;
+  }>;
+  totalPoints: number;
 }
 
 const DashboardClient = ({
@@ -50,6 +66,9 @@ const DashboardClient = ({
   statsCards,
   recentActivities,
   rankTitle,
+  nextRankInfo,
+  chartData,
+  totalPoints
 }: DashboardClientProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -151,7 +170,7 @@ const DashboardClient = ({
         pointsRef.current = newPoints;
         return newPoints;
       });
-    }, 2000);
+    }, 15000000);
     return () => clearInterval(interval);
   }, []);
 
@@ -307,8 +326,9 @@ const DashboardClient = ({
           </div>
         </div>
 
-        {/* Hero Section with Carousel and Service Categories */}
+        {/* Leaderboard and Service Categories */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Leaderboard Snapshot */}
           <div className="lg:col-span-2">
             <div className="bg-card rounded-lg shadow-lg overflow-hidden">
               <div className="relative h-96">
@@ -348,6 +368,7 @@ const DashboardClient = ({
             </div>
           </div>
 
+          {/* Service Categories */}
           <div className="lg:col-span-1">
             <div className="bg-card rounded-lg shadow-lg">
               <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
@@ -378,6 +399,36 @@ const DashboardClient = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Hero Carousel */}
+        <div className="bg-card rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="relative h-96">
+            {carouselImages.map((img, idx) => (
+              <img key={idx} src={img} alt={`Slide ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+              <div className="p-8 text-white">
+                <h2 className="text-3xl font-bold mb-2">Experience Divine Journey</h2>
+                <p className="text-lg">Your spiritual companion in Ujjain</p>
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4 flex space-x-2">
+              {carouselImages.map((_, idx) => (
+                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {statsCards.slice(3).map((stat: any, idx: number) => (
+            <div key={idx + 3} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
+              <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
+              <p className="text-3xl font-bold">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* About Section */}
@@ -612,82 +663,8 @@ const DashboardClient = ({
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-3xl font-bold text-foreground text-center mb-8">
-            What Pilgrims Say
-          </h2>
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-purple-900 rounded-2xl p-8">
-              <div className="flex justify-center mb-4">
-                {[...Array(testimonials[currentTestimonial].rating)].map(
-                  (_, i) => (
-                    <Star
-                      key={i}
-                      className="text-yellow-400 fill-current"
-                      size={24}
-                    />
-                  )
-                )}
-              </div>
-              <p className="text-xl text-foreground text-center mb-6 italic">
-                "{testimonials[currentTestimonial].text}"
-              </p>
-              <div className="text-center">
-                <p className="font-bold text-lg text-foreground">
-                  {testimonials[currentTestimonial].name}
-                </p>
-                <p className="text-muted-foreground">
-                  {testimonials[currentTestimonial].location}
-                </p>
-              </div>
-              <div className="flex justify-center mt-6 space-x-2">
-                {testimonials.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentTestimonial(idx)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      idx === currentTestimonial ? "bg-primary" : "bg-muted"
-                    }`}
-                    title={`View testimonial ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Live Population Map */}
-        <OpenStreetMap className="mb-8" />
-
-        {/* History of Ujjain */}
-        <div className="bg-card rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-foreground text-center mb-8">
-            History of Ujjain
-          </h2>
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 rounded-2xl p-8">
-            <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              Ujjain, one of the seven sacred cities (Sapta Puri) in Hinduism,
-              holds a significant place in Indian history and spirituality.
-              Known as Avantika in ancient times, it was the capital of the
-              Avanti Kingdom and a major center of learning and culture.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              The city is home to the revered Mahakaleshwar Temple, one of the
-              twelve Jyotirlingas, where Lord Shiva is worshipped in his fierce
-              manifestation. Ujjain is also famous for hosting the Kumbh Mela
-              every twelve years, where millions of devotees gather to take a
-              holy dip in the Shipra River.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Rich in astronomical heritage, Ujjain was once the prime meridian
-              for Indian astronomers. The legacy of great scholars like Kalidasa
-              and Brahmagupta adds to its cultural significance, making it a
-              vibrant pilgrimage destination that blends ancient traditions with
-              modern facilities.
-            </p>
-          </div>
-        </div>
+        
       </main>
 
       {/* Footer */}

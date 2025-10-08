@@ -271,6 +271,9 @@ export default async function DashboardPage() {
     statsCards,
     recentActivities,
     rankTitle,
+    // nextRankInfo,
+    // chartData,
+    totalPoints,
     isDatabaseAvailable: profileRes.success && profileRes.user !== mockUser,
   };
 

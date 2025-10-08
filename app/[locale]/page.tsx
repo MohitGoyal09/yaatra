@@ -485,6 +485,11 @@ const YaatraSarthiHome = () => {
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 z-0"
             />
+
+            {/* Main background image overlay */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 z-0"
+            />
             
             <div 
               className="w-full px-4 max-w-7xl mx-auto relative z-10"

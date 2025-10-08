@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   ChevronRight,
   Star,
@@ -293,16 +294,17 @@ const DashboardClient = ({
                 </div>
               </div>
             </div>
-            <div className="bg-card rounded-lg p-4 border border-border">
-              <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-red-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Notifications</p>
-                  <p className="text-xl font-bold text-red-500">
-                    {liveStats.notifications}
-                  </p>
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-4 border border-border hover:from-orange-600 hover:to-red-600 transition-all duration-300 cursor-pointer shadow-lg">
+              <Link href="/claim-karma" className="flex items-center gap-3 text-white">
+                <div className="bg-white/20 p-2 rounded-full">
+                  <Award className="w-5 h-5" />
                 </div>
-              </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium opacity-90">Ready to Claim</p>
+                  <p className="text-lg font-bold">Karma Points</p>
+                </div>
+                <ChevronRight className="w-5 h-5 opacity-75" />
+              </Link>
             </div>
           </div>
         </div>

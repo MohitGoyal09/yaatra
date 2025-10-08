@@ -29,43 +29,47 @@ import { DevotionalSVGParticles } from "@/components/live-darshan/devotional-svg
 import { VideoOverlayEffects } from "@/components/live-darshan/floating-elements";
 import { InteractiveSVGElements } from "@/components/live-darshan/interactive-svg-elements";
 
-// Ujjain temples with their live stream IDs (using sample streams for demo)
+// Ujjain temples with their live stream sources
 const UJJAIN_TEMPLES = {
   mahakal: {
     id: "mahakal",
     name: "Mahakaleshwar Temple",
-    streamId: "dQw4w9WgXcQ", // Sample stream ID - replace with actual
-    description: "The most sacred Jyotirlinga of Lord Shiva",
+    streamId: "mZEo0DaOGDg",
+    description: "The most sacred Jyotirlinga of Lord Shiva - Live Darshan",
     icon: "🕉️",
     color: "bg-purple-500",
     liveViewers: 1247,
+    title: "Live Darshan from Mahakaleshwar Temple, Ujjain",
   },
   harsiddhi: {
     id: "harsiddhi",
     name: "Harsiddhi Temple",
-    streamId: "dQw4w9WgXcQ", // Sample stream ID - replace with actual
-    description: "Goddess Annapurna and Harsiddhi Mata",
+    streamId: "mZEo0DaOGDg",
+    description: "Goddess Annapurna and Harsiddhi Mata - Live Darshan",
     icon: "🌸",
     color: "bg-pink-500",
     liveViewers: 892,
+    title: "Live Darshan from Harsiddhi Temple, Ujjain",
   },
   chintaman: {
     id: "chintaman",
     name: "Chintaman Ganesh Temple",
-    streamId: "dQw4w9WgXcQ", // Sample stream ID - replace with actual
-    description: "Lord Ganesha - Remover of obstacles",
+    streamId: "mZEo0DaOGDg",
+    description: "Lord Ganesha - Remover of obstacles - Live Darshan",
     icon: "🐘",
     color: "bg-orange-500",
     liveViewers: 634,
+    title: "Live Darshan from Chintaman Ganesh Temple, Ujjain",
   },
   kalbhairav: {
     id: "kalbhairav",
     name: "Kalbhairav Temple",
-    streamId: "dQw4w9WgXcQ", // Sample stream ID - replace with actual
-    description: "Lord Kalbhairav - Guardian of Ujjain",
+    streamId: "mZEo0DaOGDg",
+    description: "Lord Kalbhairav - Guardian of Ujjain - Live Darshan",
     icon: "⚡",
     color: "bg-red-500",
     liveViewers: 456,
+    title: "Live Darshan from Kalbhairav Temple, Ujjain",
   },
 };
 
@@ -89,6 +93,8 @@ export default function LiveDarshanPage({
   const [showAgarbati, setShowAgarbati] = useState(false);
   const [celebrationMode, setCelebrationMode] = useState(false);
   const [showInteractiveElements, setShowInteractiveElements] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
 
   const videoRef = useRef<HTMLIFrameElement>(null);
   const watchTimeRef = useRef<NodeJS.Timeout | null>(null);
@@ -115,6 +121,15 @@ export default function LiveDarshanPage({
       }
     };
   }, [isPlaying, watchTime]);
+
+  // Handle video loading state
+  useEffect(() => {
+    // Simulate loading for YouTube iframe
+    const timer = setTimeout(() => {
+      setVideoLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [selectedTemple]);
 
   const earnPunyaPoints = (points: number, action: string) => {
     setPunyaPoints((prev) => prev + points);
@@ -174,6 +189,22 @@ export default function LiveDarshanPage({
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleVideoLoad = () => {
+    setVideoLoading(false);
+    setVideoError(false);
+  };
+
+  const handleVideoError = () => {
+    setVideoLoading(false);
+    setVideoError(true);
+  };
+
+  const handleTempleChange = (templeId: string) => {
+    setSelectedTemple(templeId);
+    setVideoLoading(true);
+    setVideoError(false);
   };
 
   const currentTemple =
@@ -262,19 +293,64 @@ export default function LiveDarshanPage({
           <Card className="bg-gradient-to-br from-saffron-900/20 via-orange-800/20 to-red-900/20 backdrop-blur-md border-saffron-400/20 overflow-hidden relative shadow-2xl shadow-saffron-500/10">
             <CardContent className="p-0">
               <div className="relative aspect-video bg-black">
-                {/* Video Player - Hidden YouTube UI */}
+                {/* Video Player - YouTube Live Stream */}
                 <iframe
                   ref={videoRef}
                   src={`https://www.youtube.com/embed/${
                     currentTemple.streamId
                   }?autoplay=1&mute=${
                     isMuted ? 1 : 0
-                  }&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`}
+                  }&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1&enablejsapi=1`}
                   className="w-full h-full border-none"
                   allow="autoplay; encrypted-media"
                   allowFullScreen={false}
-                  title={`Live Darshan from ${currentTemple.name}`}
+                  title={currentTemple.title}
                 />
+
+                {/* Video Loading State */}
+                {videoLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="text-center text-white">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-saffron-400 mx-auto mb-4"></div>
+                      <p className="text-saffron-200">
+                        Loading Live Darshan...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Video Title Overlay */}
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent p-4 z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                      <h2 className="text-white text-lg md:text-xl font-bold bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                        {currentTemple.title}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2 bg-red-600/90 px-3 py-1 rounded-full border border-red-400/30">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <span className="text-white text-sm font-semibold">
+                        LIVE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Video Error State */}
+                {videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="text-center text-white p-6">
+                      <div className="text-4xl mb-4">🙏</div>
+                      <p className="text-saffron-200 mb-2">
+                        Unable to load live stream
+                      </p>
+                      <p className="text-sm text-saffron-300">
+                        Please try refreshing the page
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Video Overlay Effects */}
                 <VideoOverlayEffects />
@@ -297,11 +373,11 @@ export default function LiveDarshanPage({
                 )}
 
                 {/* Temple Info Overlay */}
-                <div className="absolute top-4 left-4 bg-gradient-to-br from-saffron-800/90 via-orange-800/90 to-red-800/90 backdrop-blur-md text-white p-4 rounded-xl border border-saffron-400/30 shadow-2xl shadow-saffron-500/20">
+                <div className="absolute top-20 left-4 bg-gradient-to-br from-saffron-800/90 via-orange-800/90 to-red-800/90 backdrop-blur-md text-white p-4 rounded-xl border border-saffron-400/30 shadow-2xl shadow-saffron-500/20">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{currentTemple.icon}</span>
                     <div>
-                      <h3 className="font-bold text-xl bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                      <h3 className="font-bold text-lg bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
                         {currentTemple.name}
                       </h3>
                       <p className="text-sm text-saffron-200">
@@ -407,6 +483,39 @@ export default function LiveDarshanPage({
                     <Play className="w-5 h-5" />
                   )}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Temple Selector */}
+        <div className="mb-6">
+          <Card className="bg-gradient-to-br from-saffron-800/30 via-orange-700/30 to-red-800/30 backdrop-blur-md border-saffron-400/20 shadow-xl shadow-saffron-500/10">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold mb-4 text-center bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                Choose Your Temple
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.values(UJJAIN_TEMPLES).map((temple) => (
+                  <Button
+                    key={temple.id}
+                    onClick={() => handleTempleChange(temple.id)}
+                    className={`devotional-button transition-all duration-300 ${
+                      selectedTemple === temple.id
+                        ? "bg-gradient-to-r from-saffron-600 to-orange-600 shadow-lg shadow-saffron-500/30"
+                        : "bg-white/10 hover:bg-white/20 border border-white/20"
+                    } text-white p-4 rounded-xl`}
+                    variant="outline"
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{temple.icon}</div>
+                      <div className="text-sm font-medium">{temple.name}</div>
+                      <div className="text-xs text-saffron-200 mt-1">
+                        {temple.liveViewers} watching
+                      </div>
+                    </div>
+                  </Button>
+                ))}
               </div>
             </CardContent>
           </Card>

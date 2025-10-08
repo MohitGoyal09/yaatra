@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Roboto", sans-serif;
-  --font-mono: "Fira Code", monospace;
+  --font-sans: var(--font-inter), "Inter", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -158,9 +158,9 @@
   --brand: hsl(27 96% 61%);
   --brand-foreground: hsl(31 97% 72%);
   --destructive-foreground: oklch(1.0000 0 0);
-  --font-sans: "Roboto", sans-serif;
+  --font-sans: var(--font-inter), "Inter", sans-serif;
   --font-serif: "Merriweather", serif;
-  --font-mono: "Fira Code", monospace;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
   --shadow-color: #000000;
   --shadow-opacity: 0.1;
   --shadow-blur: 0.5rem;
@@ -215,9 +215,9 @@
   --brand: hsl(31 97% 72%);
   --destructive-foreground: oklch(1.0000 0 0);
   --radius: 0.5rem;
-  --font-sans: "Roboto", sans-serif;
+  --font-sans: var(--font-inter), "Inter", sans-serif;
   --font-serif: "Merriweather", serif;
-  --font-mono: "Fira Code", monospace;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
   --shadow-color: #000000;
   --shadow-opacity: 0.3;
   --shadow-blur: 0.75rem;

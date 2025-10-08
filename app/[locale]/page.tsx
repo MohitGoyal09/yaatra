@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { LiveDarshanDemoCard } from "@/components/live-darshan/demo-card";
+
+
 
 interface Language {
   code: string;
@@ -219,10 +220,7 @@ const YaatraSarthiHome = () => {
                 Quick Access
               </h2>
 
-              {/* Live Darshan Feature - Full Width */}
-              <div className="mb-12">
-                <LiveDarshanDemoCard />
-              </div>
+              
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 <div className="bg-card p-6 md:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow border">

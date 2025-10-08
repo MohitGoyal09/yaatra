@@ -71,7 +71,7 @@ export function AppNavbar() {
   // Removed useTranslations usage to fix runtime error
 
   return (
-    <div className="flex items-center justify-between p-4 border-b">
+    <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
       {/* Logo */}
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center space-x-2">
@@ -82,73 +82,83 @@ export function AppNavbar() {
         </Link>
       </div>
 
-      {/* Main Navigation */}
-      <NavigationMenu>
-        <NavigationMenuList>
-          {/* Main Features */}
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Features</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                <li className="row-span-3">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none select-none focus:shadow-md"
-                      href="/"
+      {/* Main Navigation - Visible Buttons */}
+      <div className="hidden md:flex items-center space-x-1">
+        {/* Primary Navigation Items */}
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/map" className="flex items-center gap-2">
+            <MapIcon className="h-4 w-4" />
+            <span>Map</span>
+          </Link>
+        </Button>
+
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/social" className="flex items-center gap-2">
+            <UsersIcon className="h-4 w-4" />
+            <span>Social</span>
+          </Link>
+        </Button>
+
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/chat" className="flex items-center gap-2">
+            <MessageSquareIcon className="h-4 w-4" />
+            <span>Chat</span>
+          </Link>
+        </Button>
+
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/live-darshan" className="flex items-center gap-2">
+            <CameraIcon className="h-4 w-4" />
+            <span>Live Darshan</span>
+          </Link>
+        </Button>
+
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <BarChart3Icon className="h-4 w-4" />
+            <span>Dashboard</span>
+          </Link>
+        </Button>
+
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/leaderboard" className="flex items-center gap-2">
+            <SearchIcon className="h-4 w-4" />
+            <span>Leaderboard</span>
+          </Link>
+        </Button>
+      </div>
+
+      {/* Mobile Navigation - Dropdown for smaller screens */}
+      <div className="md:hidden">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Menu</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[300px] gap-2">
+                  {[...mainNavItems, ...utilityItems].map((item) => (
+                    <ListItem
+                      key={item.title}
+                      href={item.href}
+                      title={item.title}
+                      icon={item.icon}
                     >
-                      <div className="mt-4 mb-2 text-lg font-medium">
-                        Yaatra
-                      </div>
-                      <p className="text-muted-foreground text-sm leading-tight">
-                        Your complete travel companion for spiritual journeys.
-                      </p>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-                {mainNavItems.map((item) => (
+                      {item.description}
+                    </ListItem>
+                  ))}
                   <ListItem
-                    key={item.title}
-                    href={item.href}
-                    title={item.title}
-                    icon={item.icon}
+                    href="/leaderboard"
+                    title="Leaderboard"
+                    icon={SearchIcon}
                   >
-                    {item.description}
+                    View rankings and achievements
                   </ListItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          {/* Utilities */}
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[300px] gap-2">
-                {utilityItems.map((item) => (
-                  <ListItem
-                    key={item.title}
-                    href={item.href}
-                    title={item.title}
-                    icon={item.icon}
-                  >
-                    {item.description}
-                  </ListItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          {/* Direct Links */}
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              asChild
-              className={navigationMenuTriggerStyle()}
-            >
-              <Link href="/leaderboard">Leaderboard</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
 
       {/* Right Side Controls */}
       <div className="flex items-center space-x-2">

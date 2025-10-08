@@ -126,7 +126,7 @@ model LostFoundItem {
   contact_email        String?
   contact_address      String?
   image_url            String?
-  status               String    @default("active") // 'active', 'resolved', 'closed'
+  status               String    @default("pending") // 'pending', 'active', 'resolved', 'closed'
   created_at           DateTime  @default(now())
   updated_at           DateTime  @updatedAt
   resolved_at          DateTime?

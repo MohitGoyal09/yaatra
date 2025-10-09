@@ -15,13 +15,25 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export default clerkMiddleware((auth, req) => {
-  // Apply Clerk auth to API routes (except SSE endpoints)
+  console.log("🔍 [MIDDLEWARE] Processing request:", req.nextUrl.pathname);
+
+  // Apply Clerk auth to API routes (except public endpoints)
   if (
     req.nextUrl.pathname.startsWith("/api/") &&
-    !req.nextUrl.pathname.startsWith("/api/map-updates")
+    !req.nextUrl.pathname.startsWith("/api/map-updates") &&
+    !req.nextUrl.pathname.startsWith("/api/chat") &&
+    !req.nextUrl.pathname.startsWith("/api/health") &&
+    !req.nextUrl.pathname.startsWith("/api/test")
   ) {
+    console.log("🔐 [MIDDLEWARE] Protecting API route:", req.nextUrl.pathname);
     auth.protect();
+  } else if (req.nextUrl.pathname.startsWith("/api/chat")) {
+    console.log(
+      "✅ [MIDDLEWARE] Allowing chat API without auth:",
+      req.nextUrl.pathname
+    );
   }
+
   return intlMiddleware(req);
 });
 
@@ -32,8 +44,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - Any path containing a dot (e.g., .mp4, .png, .svg). This is the key fix.
+     * - api/ (API routes should not be internationalized)
+     * - Any path containing a dot (e.g., .mp4, .png, .svg)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\..*).*)",
   ],
 };

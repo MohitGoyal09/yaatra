@@ -13,16 +13,31 @@ import { z } from "zod";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
+  console.log("🔥 [DEBUG] Chat API POST /api/chat called");
+  console.log("🌐 [DEBUG] Request URL:", req.url);
+  console.log(
+    "📋 [DEBUG] Request headers:",
+    Object.fromEntries(req.headers.entries())
+  );
+
   try {
     let authUserId: string | null = null;
     let clerk = null;
 
+    console.log("🔐 [DEBUG] Attempting authentication...");
     try {
       const authResult = await auth();
       authUserId = authResult.userId;
       clerk = await currentUser();
+      console.log("✅ [DEBUG] Authentication successful:", {
+        authUserId,
+        clerkName: clerk?.fullName,
+      });
     } catch (authError) {
-      console.warn("Authentication failed, proceeding as guest:", authError);
+      console.warn(
+        "⚠️ [DEBUG] Authentication failed, proceeding as guest:",
+        authError
+      );
     }
 
     const identityKey =
@@ -31,9 +46,12 @@ export async function POST(req: Request) {
       authUserId ||
       undefined;
 
+    console.log("🔑 [DEBUG] Identity key:", identityKey);
+
     // Ensure app user exists keyed by stable identity (email/phone)
     let dbUserId: string | undefined = undefined;
     if (identityKey) {
+      console.log("👤 [DEBUG] Upserting user with identity:", identityKey);
       const upserted = await prisma.user.upsert({
         where: { phone_number: identityKey },
         update: {},
@@ -45,7 +63,13 @@ export async function POST(req: Request) {
         },
       });
       dbUserId = upserted.id;
+      console.log("✅ [DEBUG] User upserted with ID:", dbUserId);
+    } else {
+      console.log(
+        "⚠️ [DEBUG] No identity key, proceeding without user creation"
+      );
     }
+    console.log("📨 [DEBUG] Parsing request body...");
     const {
       messages,
       model,
@@ -57,6 +81,13 @@ export async function POST(req: Request) {
       webSearch?: boolean;
       userId?: string;
     } = await req.json();
+
+    console.log("📊 [DEBUG] Request data:", {
+      messagesCount: messages?.length || 0,
+      model,
+      webSearch,
+      requestUserId,
+    });
 
     // Map client-provided model string to Google provider instance
     const resolveModel = () => {
@@ -232,8 +263,15 @@ export async function POST(req: Request) {
           }),
         } as Record<string, unknown>);
 
+    console.log("🤖 [DEBUG] Initializing AI model...");
+    const selectedModel = resolveModel();
+    console.log(
+      "🤖 [DEBUG] Selected model:",
+      model || "gemini-2.5-flash (fallback)"
+    );
+
     const result = streamText({
-      model: resolveModel(),
+      model: selectedModel,
       messages: convertToModelMessages(messages),
       tools: toolsObj as ToolSet,
       stopWhen: stepCountIs(5),
@@ -253,12 +291,28 @@ export async function POST(req: Request) {
       Be concise, friendly, and culturally respectful.`,
     });
 
+    console.log("✅ [DEBUG] AI model initialized, returning stream response");
     return result.toUIMessageStreamResponse({
       sendSources: true,
       sendReasoning: true,
     });
   } catch (error) {
-    console.error("Chat API error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    console.error("💥 [DEBUG] Chat API error:", error);
+    console.error("💥 [DEBUG] Error type:", typeof error);
+    console.error(
+      "💥 [DEBUG] Error message:",
+      error instanceof Error ? error.message : "No message"
+    );
+    console.error(
+      "💥 [DEBUG] Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
+    return Response.json(
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

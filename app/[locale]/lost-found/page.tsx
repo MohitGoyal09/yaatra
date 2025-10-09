@@ -62,6 +62,9 @@ export default function LostFoundPage() {
   }, [searchFilters]);
 
   const loadItems = async () => {
+    console.log("🔄 [DEBUG] loadItems() started");
+    console.log("🔍 [DEBUG] Current search filters:", searchFilters);
+
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -73,24 +76,60 @@ export default function LostFoundPage() {
       if (searchFilters.location)
         params.append("location", searchFilters.location);
 
-      const response = await fetch(`/api/lost-found?${params.toString()}`);
+      const url = `/api/lost-found?${params.toString()}`;
+      console.log("🌐 [DEBUG] Making GET request to:", url);
+      console.log(
+        "📋 [DEBUG] Request params:",
+        Object.fromEntries(params.entries())
+      );
+
+      const response = await fetch(url);
+
+      console.log("📥 [DEBUG] Response received:");
+      console.log("  - Status:", response.status, response.statusText);
+      console.log(
+        "  - Headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+      console.log("  - OK:", response.ok);
+      console.log("  - URL:", response.url);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ [DEBUG] API Error Response:", errorText);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log("📊 [DEBUG] Parsed JSON response:", data);
 
       if (data.success) {
+        console.log(
+          "✅ [DEBUG] Success - Setting items:",
+          data.items?.length || 0,
+          "items"
+        );
         setItems(data.items);
       } else {
-        console.error("Failed to load items:", data.error);
+        console.error("❌ [DEBUG] API returned error:", data.error);
+        console.log("📋 [DEBUG] Error details:", data);
+        setItems([]); // Set empty array on error
       }
     } catch (error) {
-      console.error("Error loading items:", error);
+      console.error("💥 [DEBUG] Error loading items:", error);
+      console.error(
+        "💥 [DEBUG] Error stack:",
+        error instanceof Error ? error.stack : "No stack trace"
+      );
     } finally {
+      console.log("🏁 [DEBUG] loadItems() finished");
       setLoading(false);
     }
   };
 
   const handleSubmitForm = async (formData: LostFoundItemFormData) => {
-    console.log("🚀 Form submission started");
-    console.log("📝 Form data received:", formData);
+    console.log("🚀 [DEBUG] Form submission started");
+    console.log("📝 [DEBUG] Form data received:", formData);
 
     setSubmitting(true);
     try {
@@ -109,8 +148,13 @@ export default function LostFoundPage() {
         locationCoordinates: formData.locationCoordinates,
       };
 
-      console.log("📤 Request body being sent:", requestBody);
-      console.log("🌐 Making API call to: /api/lost-found");
+      console.log("📤 [DEBUG] Request body being sent:", requestBody);
+      console.log("🌐 [DEBUG] Making POST API call to: /api/lost-found");
+      console.log(
+        "🔑 [DEBUG] User authentication status:",
+        user ? "Authenticated" : "Not authenticated"
+      );
+      console.log("👤 [DEBUG] User ID:", user?.id);
 
       const response = await fetch("/api/lost-found", {
         method: "POST",
@@ -120,17 +164,53 @@ export default function LostFoundPage() {
         body: JSON.stringify(requestBody),
       });
 
-    
-    } catch (error : any) {
-      console.error("💥 Network/parsing error:", error);
-      console.error("💥 Error details:", {
+      console.log("📥 [DEBUG] Response received:");
+      console.log("  - Status:", response.status, response.statusText);
+      console.log(
+        "  - Headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+      console.log("  - OK:", response.ok);
+      console.log("  - URL:", response.url);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ [DEBUG] API Error Response:", errorText);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("📊 [DEBUG] Parsed JSON response:", data);
+
+      if (data.success) {
+        console.log("✅ [DEBUG] Item created successfully:", data.item);
+        console.log("🎯 [DEBUG] Points awarded:", data.pointsAwarded);
+        alert(
+          `Item reported successfully! You earned ${data.pointsAwarded} points.`
+        );
+
+        // Reset the form by switching to browse tab
+        setActiveTab("browse");
+
+        // Reload items to show the new one
+        loadItems();
+      } else {
+        console.error("❌ [DEBUG] API returned error:", data.error);
+        console.log("📋 [DEBUG] Error details:", data);
+        alert(
+          `Error: ${data.error}${data.details ? ` - ${data.details}` : ""}`
+        );
+      }
+    } catch (error: any) {
+      console.error("💥 [DEBUG] Network/parsing error:", error);
+      console.error("💥 [DEBUG] Error details:", {
         message: error.message,
         stack: error.stack,
         name: error.name,
       });
       alert(`Error submitting item: ${error.message || "Unknown error"}`);
     } finally {
-      console.log("🏁 Form submission finished");
+      console.log("🏁 [DEBUG] Form submission finished");
       setSubmitting(false);
     }
   };
@@ -145,27 +225,59 @@ export default function LostFoundPage() {
   };
 
   const handleDeleteItem = async (item: LostFoundItem) => {
+    console.log("🗑️ [DEBUG] Delete item requested for:", item.id, item.name);
+
     if (!confirm("Are you sure you want to delete this item?")) {
+      console.log("❌ [DEBUG] User cancelled deletion");
       return;
     }
 
     try {
-      const response = await fetch(`/api/lost-found/${item.id}`, {
+      const url = `/api/lost-found/${item.id}`;
+      console.log("🌐 [DEBUG] Making DELETE request to:", url);
+      console.log(
+        "🔑 [DEBUG] User authentication status:",
+        user ? "Authenticated" : "Not authenticated"
+      );
+      console.log("👤 [DEBUG] User ID:", user?.id);
+
+      const response = await fetch(url, {
         method: "DELETE",
       });
 
+      console.log("📥 [DEBUG] Delete response received:");
+      console.log("  - Status:", response.status, response.statusText);
+      console.log(
+        "  - Headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+      console.log("  - OK:", response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ [DEBUG] API Error Response:", errorText);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log("📊 [DEBUG] Delete response data:", data);
 
       if (data.success) {
+        console.log("✅ [DEBUG] Item deleted successfully, removing from list");
         // Remove the item from the list
         setItems((prev) => prev.filter((i) => i.id !== item.id));
         alert("Item deleted successfully");
       } else {
-        console.error("Failed to delete item:", data.error);
+        console.error("❌ [DEBUG] Failed to delete item:", data.error);
+        console.log("📋 [DEBUG] Error details:", data);
         alert("Failed to delete item. Please try again.");
       }
     } catch (error) {
-      console.error("Error deleting item:", error);
+      console.error("💥 [DEBUG] Error deleting item:", error);
+      console.error(
+        "💥 [DEBUG] Error stack:",
+        error instanceof Error ? error.stack : "No stack trace"
+      );
       alert("Error deleting item. Please try again.");
     }
   };
@@ -202,7 +314,9 @@ export default function LostFoundPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{lostItems.length}</p>
-                      <p className="text-sm text-muted-foreground">Lost Items</p>
+                      <p className="text-sm text-muted-foreground">
+                        Lost Items
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -216,7 +330,9 @@ export default function LostFoundPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{foundItems.length}</p>
-                      <p className="text-sm text-muted-foreground">Found Items</p>
+                      <p className="text-sm text-muted-foreground">
+                        Found Items
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -230,7 +346,9 @@ export default function LostFoundPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{items.length}</p>
-                      <p className="text-sm text-muted-foreground">Total Reports</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Reports
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -244,7 +362,10 @@ export default function LostFoundPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">
-                        {items.filter((item) => item.status === "resolved").length}
+                        {
+                          items.filter((item) => item.status === "resolved")
+                            .length
+                        }
                       </p>
                       <p className="text-sm text-muted-foreground">Resolved</p>
                     </div>
@@ -259,19 +380,22 @@ export default function LostFoundPage() {
               onValueChange={setActiveTab}
               className="space-y-6"
             >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="browse" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="browse" className="flex items-center gap-2">
                   <Search className="h-4 w-4" />
                   Browse Items
                 </TabsTrigger>
-            <TabsTrigger value="report" className="flex items-center gap-2">
+                <TabsTrigger value="report" className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
                   Report Item
                 </TabsTrigger>
-            <TabsTrigger value="my-items" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              My Items
-            </TabsTrigger>
+                <TabsTrigger
+                  value="my-items"
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  My Items
+                </TabsTrigger>
               </TabsList>
 
               {/* Browse Items Tab */}
@@ -298,7 +422,10 @@ export default function LostFoundPage() {
 
               {/* Report Item Tab */}
               <TabsContent value="report">
-                <LostFoundForm onSubmit={handleSubmitForm} isLoading={submitting} />
+                <LostFoundForm
+                  onSubmit={handleSubmitForm}
+                  isLoading={submitting}
+                />
               </TabsContent>
 
               {/* My Items Tab */}
@@ -340,17 +467,26 @@ export default function LostFoundPage() {
                 <h4 className="font-bold mb-4">Quick Links</h4>
                 <ul className="space-y-2">
                   <li>
-                    <a href="/about" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/about"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       About Us
                     </a>
                   </li>
                   <li>
-                    <a href="/services" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/services"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Services
                     </a>
                   </li>
                   <li>
-                    <a href="/contact" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/contact"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Contact
                     </a>
                   </li>
@@ -360,17 +496,26 @@ export default function LostFoundPage() {
                 <h4 className="font-bold mb-4">Resources</h4>
                 <ul className="space-y-2">
                   <li>
-                    <a href="/faq" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/faq"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       FAQ
                     </a>
                   </li>
                   <li>
-                    <a href="/guide" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/guide"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Travel Guide
                     </a>
                   </li>
                   <li>
-                    <a href="/emergency" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/emergency"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Emergency
                     </a>
                   </li>
@@ -380,12 +525,18 @@ export default function LostFoundPage() {
                 <h4 className="font-bold mb-4">Legal</h4>
                 <ul className="space-y-2">
                   <li>
-                    <a href="/privacy" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/privacy"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Privacy Policy
                     </a>
                   </li>
                   <li>
-                    <a href="/terms" className="text-green-100 hover:text-white transition-colors">
+                    <a
+                      href="/terms"
+                      className="text-green-100 hover:text-white transition-colors"
+                    >
                       Terms of Service
                     </a>
                   </li>

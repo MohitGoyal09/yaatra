@@ -117,9 +117,6 @@ export async function PUT(
       );
     }
 
-    const requestBody = await req.json();
-    console.log("📨 Request body received:", requestBody);
-
     // Get current user from Clerk to find the app user
     console.log("🔍 Getting current user from Clerk...");
     const clerk = await currentUser();
@@ -148,10 +145,11 @@ export async function PUT(
 
     console.log("✅ App user found:", appUser.id);
 
-    // Check if item exists and user owns it
+    // Find the item first to check ownership
     console.log("🔍 Finding item to check ownership...");
     const existingItem = await prisma.lostFoundItem.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     if (!existingItem) {
@@ -165,7 +163,7 @@ export async function PUT(
       );
     }
 
-    // Check if user is the author
+    // Check if user is the author or has permission
     console.log(
       "🔐 Checking ownership - Item userId:",
       existingItem.userId,
@@ -183,7 +181,9 @@ export async function PUT(
       );
     }
 
-    // Extract and validate request data
+    const requestBody = await req.json();
+    console.log("📨 Request body received:", requestBody);
+
     const {
       type,
       category,
@@ -195,14 +195,13 @@ export async function PUT(
       contactEmail,
       contactAddress,
       imageUrl,
-      locationData,
-      locationCoordinates,
+      status,
     } = requestBody;
 
-    // Enhanced input validation
+    // Validation
+    console.log("✅ Validating request data...");
     const validationErrors = [];
 
-    // Required fields validation
     if (type && !["lost", "found"].includes(type)) {
       validationErrors.push("Type must be either 'lost' or 'found'");
     }
@@ -211,7 +210,7 @@ export async function PUT(
       category &&
       !["person", "pet", "item", "document", "other"].includes(category)
     ) {
-      validationErrors.push("Please select a valid category");
+      validationErrors.push("Invalid category");
     }
 
     if (name && (name.trim().length < 2 || name.trim().length > 100)) {
@@ -250,32 +249,18 @@ export async function PUT(
       );
     }
 
-    // Phone number format validation
-    if (contactPhone) {
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-      if (!phoneRegex.test(contactPhone.trim())) {
-        validationErrors.push("Please enter a valid phone number");
-      }
-    }
-
-    // Email validation (if provided)
-    if (contactEmail && contactEmail.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(contactEmail.trim())) {
-        validationErrors.push("Please enter a valid email address");
-      }
-    }
-
-    // Image URL validation (if provided)
-    if (imageUrl && imageUrl.trim()) {
-      try {
-        new URL(imageUrl.trim());
-      } catch {
-        validationErrors.push("Please enter a valid image URL");
-      }
+    // Fix status validation to match schema defaults
+    if (
+      status &&
+      !["pending", "active", "resolved", "closed"].includes(status)
+    ) {
+      validationErrors.push(
+        "Status must be pending, active, resolved, or closed"
+      );
     }
 
     if (validationErrors.length > 0) {
+      console.log("❌ Validation errors:", validationErrors);
       return NextResponse.json(
         {
           success: false,
@@ -286,30 +271,24 @@ export async function PUT(
       );
     }
 
-    // Build update data object (only include provided fields)
-    const updateData: any = {};
-    if (type) updateData.type = type;
-    if (category) updateData.category = category;
-    if (name) updateData.name = name.trim();
-    if (description) updateData.description = description.trim();
-    if (location) updateData.location = location.trim();
-    if (contactName) updateData.contact_name = contactName.trim();
-    if (contactPhone) updateData.contact_phone = contactPhone.trim();
-    if (contactEmail !== undefined)
-      updateData.contact_email = contactEmail?.trim() || null;
-    if (contactAddress !== undefined)
-      updateData.contact_address = contactAddress?.trim() || null;
-    if (imageUrl !== undefined) updateData.image_url = imageUrl?.trim() || null;
-    if (locationCoordinates !== undefined)
-      updateData.location_coordinates = locationCoordinates;
-
-    console.log("📝 Update data:", updateData);
-
     // Update the item
     console.log("📝 Updating item...");
     const updatedItem = await prisma.lostFoundItem.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...(type && { type }),
+        ...(category && { category }),
+        ...(name && { name: name.trim() }),
+        ...(description && { description: description.trim() }),
+        ...(location && { location: location.trim() }),
+        ...(contactName && { contact_name: contactName.trim() }),
+        ...(contactPhone && { contact_phone: contactPhone.trim() }),
+        ...(contactEmail && { contact_email: contactEmail.trim() }),
+        ...(contactAddress && { contact_address: contactAddress.trim() }),
+        ...(imageUrl && { image_url: imageUrl.trim() }),
+        ...(status && { status }),
+        updated_at: new Date(),
+      },
       include: {
         user: {
           select: {
@@ -321,7 +300,7 @@ export async function PUT(
       },
     });
 
-    console.log("✅ Item updated successfully");
+    console.log("✅ Item updated successfully:", updatedItem.name);
     return NextResponse.json({
       success: true,
       item: updatedItem,
@@ -329,23 +308,6 @@ export async function PUT(
     });
   } catch (error) {
     console.error("💥 Error updating item:", error);
-
-    // Handle specific validation errors
-    if (
-      error instanceof Error &&
-      (error.message.includes("validation") ||
-        error.message.includes("constraint"))
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid data provided",
-          details: "Please check your input and try again",
-        },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
       {
         success: false,
@@ -362,22 +324,17 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log("🔥 [DEBUG] API DELETE /api/lost-found/[id] called");
-  console.log("🌐 [DEBUG] Request URL:", req.url);
-  console.log(
-    "📋 [DEBUG] Request headers:",
-    Object.fromEntries(req.headers.entries())
-  );
+  console.log("🔥 API DELETE /api/lost-found/[id] called");
 
   try {
     const { id } = await params;
-    console.log("📋 [DEBUG] Item ID:", id);
+    console.log("📋 Item ID:", id);
 
     const { userId } = await auth();
-    console.log("👤 [DEBUG] User ID from auth:", userId);
+    console.log("👤 User ID from auth:", userId);
 
     if (!userId) {
-      console.log("❌ [DEBUG] No user ID - unauthorized");
+      console.log("❌ No user ID - unauthorized");
       return NextResponse.json(
         {
           success: false,
@@ -427,6 +384,7 @@ export async function DELETE(
 
     console.log("✅ App user found:", appUser.id);
 
+    // Find the item first to check ownership
     console.log("🔍 Finding item to check ownership...");
     const existingItem = await prisma.lostFoundItem.findUnique({
       where: { id },

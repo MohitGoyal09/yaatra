@@ -22,7 +22,7 @@ async function checkForDuplicateReport(
         AND: [
           { type },
           { category },
-          { status: { not: "closed" } }, // Only check active reports
+          { status: { not: "closed" } }, // Only check non-closed reports
           { created_at: { gte: thirtyDaysAgo } }, // Only recent reports
           {
             OR: [
@@ -110,24 +110,40 @@ function levenshteinDistance(str1: string, str2: string): number {
 
 // GET - Fetch lost and found items
 export async function GET(req: NextRequest) {
-  console.log("🔥 API GET /api/lost-found called");
+  console.log("🔥 [DEBUG] API GET /api/lost-found called");
+  console.log("🌐 [DEBUG] Request URL:", req.url);
+  console.log(
+    "📋 [DEBUG] Request headers:",
+    Object.fromEntries(req.headers.entries())
+  );
 
   try {
     // Check if Prisma client is available
     if (!prisma) {
-      console.error("❌ Prisma client not available");
-      return NextResponse.json({
-        success: true,
-        items: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          totalPages: 0,
+      console.error("❌ [DEBUG] Prisma client not available");
+      console.log(
+        "🔧 [DEBUG] DATABASE_URL exists:",
+        !!process.env.DATABASE_URL
+      );
+      console.log("🔧 [DEBUG] NODE_ENV:", process.env.NODE_ENV);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection not available",
+          message: "Please check your database configuration and try again",
+          items: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          },
         },
-        mock: true,
-      });
+        { status: 503 }
+      );
     }
+
+    console.log("✅ [DEBUG] Prisma client is available");
 
     // Add timeout to prevent hanging connections
     const timeoutPromise = new Promise((_, reject) => {
@@ -143,8 +159,27 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search");
     const skip = (page - 1) * limit;
 
+    console.log("🔍 [DEBUG] Query parameters:", {
+      page,
+      limit,
+      type,
+      category,
+      location,
+      search,
+      skip,
+    });
+    console.log(
+      "🔍 [DEBUG] All search params:",
+      Object.fromEntries(searchParams.entries())
+    );
+
     // Build where clause with proper validation
-    const where: any = { status: "active" };
+    // Include both pending and active items (pending is default, active means approved)
+    const where: any = {
+      status: {
+        in: ["pending", "active"],
+      },
+    };
 
     if (type && type !== "all" && ["lost", "found"].includes(type)) {
       where.type = type;
@@ -169,7 +204,15 @@ export async function GET(req: NextRequest) {
       ];
     }
 
+    console.log(
+      "🔍 [DEBUG] Final where clause:",
+      JSON.stringify(where, null, 2)
+    );
+
     // Fetch items with user info and total count with timeout
+    console.log("🔍 [DEBUG] Starting database queries...");
+    console.log("⏱️ [DEBUG] Query timeout set to 10 seconds");
+
     const [items, totalCount] = (await Promise.race([
       Promise.all([
         prisma.lostFoundItem.findMany({
@@ -194,7 +237,16 @@ export async function GET(req: NextRequest) {
       timeoutPromise,
     ])) as any;
 
-    return NextResponse.json({
+    console.log("✅ [DEBUG] Database queries completed successfully");
+    console.log("📊 [DEBUG] Query results:", {
+      itemsCount: items?.length || 0,
+      totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+    });
+
+    const responseData = {
       success: true,
       items,
       pagination: {
@@ -203,9 +255,24 @@ export async function GET(req: NextRequest) {
         total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
       },
-    });
+    };
+
+    console.log(
+      "📤 [DEBUG] Sending response:",
+      JSON.stringify(responseData, null, 2)
+    );
+    return NextResponse.json(responseData);
   } catch (error) {
-    console.error("Error fetching lost and found items:", error);
+    console.error("💥 [DEBUG] Error fetching lost and found items:", error);
+    console.error("💥 [DEBUG] Error type:", typeof error);
+    console.error(
+      "💥 [DEBUG] Error message:",
+      error instanceof Error ? error.message : "No message"
+    );
+    console.error(
+      "💥 [DEBUG] Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
 
     // Return mock data if database is not available
     if (
@@ -215,7 +282,9 @@ export async function GET(req: NextRequest) {
         error.message.includes("ECONNREFUSED") ||
         error.message.includes("ENOTFOUND"))
     ) {
-      console.log("📦 Returning mock data due to database connection issue");
+      console.log(
+        "📦 [DEBUG] Returning mock data due to database connection issue"
+      );
       return NextResponse.json({
         success: true,
         items: [],
@@ -229,46 +298,49 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch items",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
+    const errorResponse = {
+      success: false,
+      error: "Failed to fetch items",
+      details: error instanceof Error ? error.message : "Unknown error",
+    };
+
+    console.log(
+      "📤 [DEBUG] Sending error response:",
+      JSON.stringify(errorResponse, null, 2)
     );
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
 // POST - Create a new lost and found item with duplicate prevention
 export async function POST(req: NextRequest) {
-  console.log("🔥 API POST /api/lost-found called");
+  console.log("🔥 [DEBUG] API POST /api/lost-found called");
+  console.log("🌐 [DEBUG] Request URL:", req.url);
+  console.log(
+    "📋 [DEBUG] Request headers:",
+    Object.fromEntries(req.headers.entries())
+  );
 
   try {
     // Check if Prisma client is available
     if (!prisma) {
-      console.error("❌ Prisma client not available");
-      return NextResponse.json({
-        success: true,
-        item: {
-          id: "mock-id",
-          type: "lost",
-          category: "electronics",
-          name: "Mock Item",
-          description: "This is a mock response",
-          location: "Mock Location",
-          status: "active",
-          created_at: new Date().toISOString(),
-          user: {
-            id: "mock-user",
-            name: "Mock User",
-            totalPunyaPoints: 0,
-          },
+      console.error("❌ [DEBUG] Prisma client not available");
+      console.log(
+        "🔧 [DEBUG] DATABASE_URL exists:",
+        !!process.env.DATABASE_URL
+      );
+      console.log("🔧 [DEBUG] NODE_ENV:", process.env.NODE_ENV);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection not available",
+          message: "Please check your database configuration and try again",
         },
-        pointsAwarded: 10,
-        mock: true,
-      });
+        { status: 503 }
+      );
     }
+
+    console.log("✅ [DEBUG] Prisma client is available");
 
     // Add timeout to prevent hanging connections
     const timeoutPromise = new Promise((_, reject) => {
@@ -276,10 +348,10 @@ export async function POST(req: NextRequest) {
     });
 
     const { userId } = await auth();
-    console.log("👤 User ID from auth:", userId);
+    console.log("👤 [DEBUG] User ID from auth:", userId);
 
     if (!userId) {
-      console.log("❌ No user ID - unauthorized");
+      console.log("❌ [DEBUG] No user ID - unauthorized");
       return NextResponse.json(
         {
           success: false,
@@ -290,7 +362,8 @@ export async function POST(req: NextRequest) {
     }
 
     const requestBody = await req.json();
-    console.log("📨 Request body received:", requestBody);
+    console.log("📨 [DEBUG] Request body received:", requestBody);
+    console.log("📨 [DEBUG] Request body keys:", Object.keys(requestBody));
 
     // Extract and validate request data
     const {
@@ -477,23 +550,28 @@ export async function POST(req: NextRequest) {
     console.log("📝 Creating lost/found item...");
     const LOST_FOUND_POINTS = 10;
 
+    const itemData = {
+      userId: appUser.id,
+      type,
+      category,
+      name: name.trim(),
+      description: description.trim(),
+      location: location.trim(),
+      contact_name: contactName.trim(),
+      contact_phone: contactPhone.trim(),
+      contact_email: contactEmail?.trim() || null,
+      contact_address: contactAddress?.trim() || null,
+      image_url: imageUrl?.trim() || null,
+      location_coordinates: locationCoordinates || null,
+      status: "pending", // Explicitly set status to pending (default)
+    };
+
+    console.log("📝 Item data to create:", itemData);
+
     const [item] = (await Promise.race([
       Promise.all([
         prisma.lostFoundItem.create({
-          data: {
-            userId: appUser.id,
-            type,
-            category,
-            name: name.trim(),
-            description: description.trim(),
-            location: location.trim(),
-            contact_name: contactName.trim(),
-            contact_phone: contactPhone.trim(),
-            contact_email: contactEmail?.trim() || null,
-            contact_address: contactAddress?.trim() || null,
-            image_url: imageUrl?.trim() || null,
-            location_coordinates: locationCoordinates || null,
-          },
+          data: itemData,
           include: {
             user: {
               select: {

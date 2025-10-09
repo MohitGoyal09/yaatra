@@ -324,7 +324,7 @@ export default function LiveDarshanPage({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
-                      <h2 className="text-white text-lg md:text-xl font-bold bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                      <h2 className="text-white text-lg md:text-xl font-bold bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text ">
                         {currentTemple.title}
                       </h2>
                     </div>
@@ -377,7 +377,7 @@ export default function LiveDarshanPage({
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{currentTemple.icon}</span>
                     <div>
-                      <h3 className="font-bold text-lg bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
+                      <h3 className="font-bold text-lg bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-white">
                         {currentTemple.name}
                       </h3>
                       <p className="text-sm text-saffron-200">
@@ -488,38 +488,7 @@ export default function LiveDarshanPage({
           </Card>
         </div>
 
-        {/* Temple Selector */}
-        <div className="mb-6">
-          <Card className="bg-gradient-to-br from-saffron-800/30 via-orange-700/30 to-red-800/30 backdrop-blur-md border-saffron-400/20 shadow-xl shadow-saffron-500/10">
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-4 text-center bg-gradient-to-r from-saffron-100 to-orange-100 bg-clip-text text-transparent">
-                Choose Your Temple
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {Object.values(UJJAIN_TEMPLES).map((temple) => (
-                  <Button
-                    key={temple.id}
-                    onClick={() => handleTempleChange(temple.id)}
-                    className={`devotional-button transition-all duration-300 ${
-                      selectedTemple === temple.id
-                        ? "bg-gradient-to-r from-saffron-600 to-orange-600 shadow-lg shadow-saffron-500/30"
-                        : "bg-white/10 hover:bg-white/20 border border-white/20"
-                    } text-white p-4 rounded-xl`}
-                    variant="outline"
-                  >
-                    <div className="text-center">
-                      {/* <div className="text-2xl mb-2">{temple.icon}</div> */}
-                      <div className="text-sm font-medium">{temple.name}</div>
-                      <div className="text-xs text-saffron-200 mt-1">
-                        {temple.liveViewers} watching
-                      </div>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
 
         {/* Spiritual Community Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

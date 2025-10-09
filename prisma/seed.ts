@@ -74,6 +74,9 @@ async function main() {
     { action_name: "attend_cultural_event_checkin", point_value: 10 },
     { action_name: "help_lost_pilgrim_sos", point_value: 40 },
     { action_name: "share_cultural_story_featured", point_value: 15 },
+
+    // User Verification
+    { action_name: "aadhaar_verification", point_value: 100 },
   ];
 
   // Create actions in database

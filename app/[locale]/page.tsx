@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { LiveDarshanDemoCard } from "@/components/live-darshan/demo-card";
+import { TestVerificationModal } from "@/components/verification/test-verification-modal";
 
 interface Language {
   code: string;

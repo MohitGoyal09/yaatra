@@ -25,7 +25,6 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { OpenStreetMap } from "@/components/map/openstreet-map";
-
 import { Progress } from "@/components/ui/progress";
 import { DonutChart } from "@/components/ui/donut-chart";
 import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";

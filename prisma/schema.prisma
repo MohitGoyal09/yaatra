@@ -16,10 +16,12 @@ datasource db {
 
 model User {
   id                  String          @id @default(cuid())
-  phone_number        String          @unique
+  phone_number        String?         @unique // Made optional to avoid constraint issues
   name                String?
   language_preference String?
   totalPunyaPoints    Int             @default(0)
+  aadhaarNumber       String?         @unique // Aadhaar number for verification
+  isAadhaarVerified   Boolean         @default(false) // Aadhaar verification status
   userActions         UserAction[]
   socialShares        SocialShare[]
   socialPosts         SocialPost[]

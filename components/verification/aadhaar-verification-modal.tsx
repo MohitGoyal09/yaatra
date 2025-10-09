@@ -1,12 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, CheckCircle, AlertCircle, Loader2, X, Gift } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Shield,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  X,
+  Gift,
+  Info,
+} from "lucide-react";
 
 interface AadhaarVerificationModalProps {
   isOpen: boolean;
@@ -15,22 +29,28 @@ interface AadhaarVerificationModalProps {
   onVerificationComplete?: () => void;
 }
 
-export function AadhaarVerificationModal({ 
-  isOpen, 
-  onClose, 
-  userId, 
-  onVerificationComplete 
+export function AadhaarVerificationModal({
+  isOpen,
+  onClose,
+  userId,
+  onVerificationComplete,
 }: AadhaarVerificationModalProps) {
-  const [aadhaar, setAadhaar] = useState('');
+  const [aadhaar, setAadhaar] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [canSkip, setCanSkip] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const [pointsEarned, setPointsEarned] = useState(0);
 
   // Allow skipping after 10 seconds
   useEffect(() => {
     if (isOpen) {
+      setError("");
+      setSuccess(false);
+      setCountdown(10);
+      setCanSkip(false);
+
       const timer = setTimeout(() => {
         setCanSkip(true);
       }, 10000);
@@ -54,8 +74,8 @@ export function AadhaarVerificationModal({
 
   const validateAadhaar = (number: string) => {
     // Remove spaces and special characters
-    const cleanNumber = number.replace(/\s/g, '');
-    
+    const cleanNumber = number.replace(/\s/g, "");
+
     // Check if it's 12 digits
     if (!/^\d{12}$/.test(cleanNumber)) {
       return false;
@@ -63,11 +83,15 @@ export function AadhaarVerificationModal({
 
     // For testing purposes, allow certain test patterns
     const testPatterns = [
-      '123456789012',
-      '999999999999', 
-      '345356534535', // Your test number
-      '111111111111',
-      '222222222222'
+      "123456789012",
+      "999999999999",
+      "345356534535",
+      "111111111111",
+      "222222222222",
+      "987654321098",
+      "123456789013",
+      "123456789014",
+      "123456789015",
     ];
 
     if (testPatterns.includes(cleanNumber)) {
@@ -90,7 +114,7 @@ export function AadhaarVerificationModal({
       [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
       [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
       [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-      [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+      [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
     ];
 
     const p = [
@@ -101,14 +125,14 @@ export function AadhaarVerificationModal({
       [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
       [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
       [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
-      [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]
+      [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
     ];
 
     let c = 0;
-    const myArray = number.split('').map(Number).reverse();
+    const myArray = number.split("").map(Number).reverse();
 
     for (let i = 0; i < myArray.length; i++) {
-      c = d[c][p[((i + 1) % 8)][myArray[i]]];
+      c = d[c][p[(i + 1) % 8][myArray[i]]];
     }
 
     return c === 0;
@@ -116,48 +140,63 @@ export function AadhaarVerificationModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
-    if (!validateAadhaar(aadhaar)) {
-      setError('Please enter a valid 12-digit Aadhaar number');
+    const cleanAadhaar = aadhaar.replace(/\s/g, "");
+
+    if (!validateAadhaar(cleanAadhaar)) {
+      setError("Please enter a valid 12-digit Aadhaar number");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Starting verification for userId:', userId, 'aadhaar:', aadhaar.replace(/\s/g, ''));
-      
-      const response = await fetch('/api/verify-aadhaar', {
-        method: 'POST',
+      console.log(
+        "🚀 [DEBUG] Starting verification for userId:",
+        userId,
+        "aadhaar:",
+        cleanAadhaar
+      );
+
+      const response = await fetch("/api/verify-aadhaar", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
-          aadhaarNumber: aadhaar.replace(/\s/g, ''),
+          aadhaarNumber: cleanAadhaar,
         }),
       });
 
-      console.log('API response status:', response.status, 'ok:', response.ok);
-      
+      console.log(
+        "📊 [DEBUG] API response status:",
+        response.status,
+        "ok:",
+        response.ok
+      );
+
       const data = await response.json();
-      console.log('API response data:', data);
+      console.log("📊 [DEBUG] API response data:", data);
 
       if (response.ok) {
-        console.log('Verification successful');
+        console.log("✅ [DEBUG] Verification successful");
+        setPointsEarned(data.data?.pointsEarned || 100);
         setSuccess(true);
         setTimeout(() => {
           onVerificationComplete?.();
           onClose();
         }, 3000);
       } else {
-        console.log('Verification failed:', data.error);
-        setError(data.error || 'Verification failed. Please try again.');
+        console.log("❌ [DEBUG] Verification failed:", data.error);
+        setError(
+          data.message || data.error || "Verification failed. Please try again."
+        );
       }
     } catch (error) {
-      console.error('Network error during verification:', error);
-      setError('Network error. Please check your connection and try again.');
+      console.error("💥 [DEBUG] Network error during verification:", error);
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -165,18 +204,19 @@ export function AadhaarVerificationModal({
 
   const formatAadhaar = (value: string) => {
     // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
-    
+    const digits = value.replace(/\D/g, "");
+
     // Limit to 12 digits
     const limited = digits.slice(0, 12);
-    
+
     // Add spaces every 4 digits
-    return limited.replace(/(\d{4})(?=\d)/g, '$1 ');
+    return limited.replace(/(\d{4})(?=\d)/g, "$1 ");
   };
 
   const handleAadhaarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatAadhaar(e.target.value);
     setAadhaar(formatted);
+    setError(""); // Clear error when user types
   };
 
   const handleSkip = () => {
@@ -191,15 +231,18 @@ export function AadhaarVerificationModal({
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <DialogTitle className="text-green-700">Verification Successful!</DialogTitle>
+            <DialogTitle className="text-green-700">
+              Verification Successful!
+            </DialogTitle>
             <DialogDescription>
-              Your Aadhaar has been verified successfully. You've earned 100 Punya Points!
+              Your Aadhaar has been verified successfully. You've earned{" "}
+              {pointsEarned} Punya Points!
             </DialogDescription>
           </DialogHeader>
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2 text-lg font-semibold text-green-600">
               <Gift className="h-5 w-5" />
-              <span>+100 Punya Points</span>
+              <span>+{pointsEarned} Punya Points</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Your account is now verified and secure!
@@ -241,13 +284,28 @@ export function AadhaarVerificationModal({
 
         <div className="space-y-4">
           <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Why verify with Aadhaar?</h4>
+            <h4 className="font-medium text-blue-900 mb-2">
+              Why verify with Aadhaar?
+            </h4>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Earn 100 Punya Points instantly</li>
               <li>• Increase account security</li>
               <li>• Build trust with other users</li>
               <li>• Access premium features</li>
             </ul>
+          </div>
+
+          {/* Test Numbers Info */}
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <Info className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium mb-1">Test Numbers (Development):</p>
+                <p className="text-xs">
+                  1234 5678 9012, 9999 9999 9999, 3453 5653 4535
+                </p>
+              </div>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -261,6 +319,7 @@ export function AadhaarVerificationModal({
                 onChange={handleAadhaarChange}
                 maxLength={14} // 12 digits + 2 spaces
                 className="text-center tracking-widest"
+                disabled={isLoading}
               />
               <div className="text-xs text-muted-foreground">
                 Enter your 12-digit Aadhaar number
@@ -278,17 +337,18 @@ export function AadhaarVerificationModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isLoading || aadhaar.replace(/\s/g, '').length !== 12}
+                disabled={isLoading || aadhaar.replace(/\s/g, "").length !== 12}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? 'Verifying...' : 'Verify & Earn Points'}
+                {isLoading ? "Verifying..." : "Verify & Earn Points"}
               </Button>
-              
+
               {canSkip && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleSkip}
+                  disabled={isLoading}
                 >
                   Skip
                 </Button>
@@ -298,7 +358,7 @@ export function AadhaarVerificationModal({
 
           <div className="text-xs text-muted-foreground">
             <p>• Your Aadhaar data is encrypted and secure</p>
-            <p>• Verification is done through DigiLocker API</p>
+            <p>• Verification is done through secure API</p>
             {!canSkip && (
               <p className="mt-2 text-orange-600">
                 You can skip this step in {countdown} seconds

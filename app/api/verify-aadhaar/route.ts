@@ -1,111 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-
-// DigiLocker API configuration
-const DIGILOCKER_BASE_URL = 'https://api.digitallocker.gov.in/public';
-const DIGILOCKER_CLIENT_ID = process.env.DIGILOCKER_CLIENT_ID;
-const DIGILOCKER_CLIENT_SECRET = process.env.DIGILOCKER_CLIENT_SECRET;
-
-interface DigiLockerResponse {
-  status: string;
-  message: string;
-  data?: {
-    aadhaar_number: string;
-    name: string;
-    dob: string;
-    gender: string;
-    address: string;
-  };
-}
-
-// Function to verify Aadhaar through DigiLocker API
-async function verifyAadhaarWithDigiLocker(aadhaarNumber: string): Promise<DigiLockerResponse> {
-  try {
-    // First, get access token
-    const tokenResponse = await fetch(`${DIGILOCKER_BASE_URL}/oauth2/1/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: DIGILOCKER_CLIENT_ID!,
-        client_secret: DIGILOCKER_CLIENT_SECRET!,
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      throw new Error('Failed to get access token');
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
-
-    // Now verify the Aadhaar number
-    const verificationResponse = await fetch(`${DIGILOCKER_BASE_URL}/aadhaar/v1/verify`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        aadhaar_number: aadhaarNumber,
-      }),
-    });
-
-    if (!verificationResponse.ok) {
-      throw new Error('Aadhaar verification failed');
-    }
-
-    const verificationData = await verificationResponse.json();
-    return verificationData;
-  } catch (error) {
-    console.error('DigiLocker API error:', error);
-    // For development/testing purposes, we'll simulate a response
-    // In production, remove this and handle the actual API error
-    return {
-      status: 'success',
-      message: 'Aadhaar verified successfully',
-      data: {
-        aadhaar_number: aadhaarNumber,
-        name: 'User Name',
-        dob: '01/01/1990',
-        gender: 'M',
-        address: 'Address'
-      }
-    };
-  }
-}
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 // Basic Aadhaar number validation using Verhoeff algorithm
 function validateAadhaarChecksum(aadhaarNumber: string): boolean {
   // For testing purposes, allow certain test patterns
   const testPatterns = [
-    '123456789012',
-    '999999999999', 
-    '345356534535', // Your test number
-    '111111111111',
-    '222222222222',
-    '555555555555',
-    '777777777777',
-    '888888888888',
-    '444444444444',
-    '666666666666',
-    '333333333333',
-    '000000000000',
-    '123456789123',
-    '987654321098',
-    '111222333444',
-    '555666777888',
-    '100200300400',
-    '200300400500',
-    '300400500600',
-    '400500600700',
-    '500600700800',
-    '600700800900',
-    '700800900123',
-    '800900123456',
-    '900123456789'
+    "123456789012",
+    "999999999999",
+    "345356534535",
+    "111111111111",
+    "222222222222",
+    "987654321098",
+    "123456789013",
+    "123456789014",
+    "123456789015",
   ];
 
   if (testPatterns.includes(aadhaarNumber)) {
@@ -127,7 +35,7 @@ function verifyVerhoeffChecksumAPI(aadhaarNumber: string): boolean {
     [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
     [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
     [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
   ];
 
   const p = [
@@ -138,149 +46,172 @@ function verifyVerhoeffChecksumAPI(aadhaarNumber: string): boolean {
     [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
     [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
     [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
-    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]
+    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
   ];
 
   let c = 0;
-  const myArray = aadhaarNumber.split('').map(Number).reverse();
+  const myArray = aadhaarNumber.split("").map(Number).reverse();
 
   for (let i = 0; i < myArray.length; i++) {
-    c = d[c][p[((i + 1) % 8)][myArray[i]]];
+    c = d[c][p[(i + 1) % 8][myArray[i]]];
   }
 
   return c === 0;
 }
 
 export async function POST(request: NextRequest) {
+  console.log("🔥 [DEBUG] POST /api/verify-aadhaar called");
+
   try {
     const { userId, aadhaarNumber } = await request.json();
-    
-    console.log('POST /api/verify-aadhaar called with:', { userId, aadhaarNumber });
+
+    console.log("📨 [DEBUG] Request data:", { userId, aadhaarNumber });
 
     // Validate input
     if (!userId || !aadhaarNumber) {
-      console.log('Missing required fields:', { userId: !!userId, aadhaarNumber: !!aadhaarNumber });
+      console.log("❌ [DEBUG] Missing required fields:", {
+        userId: !!userId,
+        aadhaarNumber: !!aadhaarNumber,
+      });
       return NextResponse.json(
-        { error: 'User ID and Aadhaar number are required' },
+        { error: "User ID and Aadhaar number are required" },
         { status: 400 }
       );
     }
 
     // Validate Aadhaar number format
-    const cleanAadhaar = aadhaarNumber.replace(/\s/g, '');
+    const cleanAadhaar = aadhaarNumber.replace(/\s/g, "");
     if (!/^\d{12}$/.test(cleanAadhaar)) {
+      console.log("❌ [DEBUG] Invalid Aadhaar format:", cleanAadhaar);
       return NextResponse.json(
-        { error: 'Invalid Aadhaar number format' },
+        { error: "Invalid Aadhaar number format. Please enter 12 digits." },
         { status: 400 }
+      );
+    }
+
+    // Check database connection
+    if (!prisma) {
+      console.error("❌ [DEBUG] Prisma client not available");
+      return NextResponse.json(
+        {
+          error: "Database connection not available",
+          message: "Please try again later",
+        },
+        { status: 503 }
       );
     }
 
     // Validate Aadhaar checksum
-    console.log('Validating Aadhaar checksum for:', cleanAadhaar);
+    console.log("🔍 [DEBUG] Validating Aadhaar checksum for:", cleanAadhaar);
     if (!validateAadhaarChecksum(cleanAadhaar)) {
-      console.log('Aadhaar checksum validation failed');
+      console.log("❌ [DEBUG] Aadhaar checksum validation failed");
       return NextResponse.json(
-        { error: 'Invalid Aadhaar number' },
+        { error: "Invalid Aadhaar number. Please check and try again." },
         { status: 400 }
       );
     }
-    console.log('Aadhaar checksum validation passed');
+    console.log("✅ [DEBUG] Aadhaar checksum validation passed");
 
-    // Check if user exists, create if doesn't exist
+    // Check if user exists
+    console.log("🔍 [DEBUG] Finding user:", userId);
     let user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
+      console.log("⚠️ [DEBUG] User not found, creating new user:", userId);
       // Create user if doesn't exist (for new signups)
       user = await prisma.user.create({
         data: {
           id: userId,
-          // Don't set phone_number to avoid unique constraint issues
-          name: '', // This can be updated later
+          name: "New User", // Default name
+          totalPunyaPoints: 0,
         },
       });
+      console.log("✅ [DEBUG] User created:", user.id);
     }
 
-    // Check if user is already verified
+    // Check if user is already verified with this Aadhaar
     if (user.isAadhaarVerified && user.aadhaarNumber === cleanAadhaar) {
-      console.log('User already verified with this Aadhaar number');
+      console.log("✅ [DEBUG] User already verified with this Aadhaar number");
       return NextResponse.json({
         success: true,
-        message: 'User is already verified with this Aadhaar number',
+        message: "User is already verified with this Aadhaar number",
         data: {
           isVerified: true,
-          pointsEarned: 0, // No additional points for re-verification
+          pointsEarned: 0,
         },
       });
     }
 
+    // Check if user is already verified with different Aadhaar
     if (user.isAadhaarVerified && user.aadhaarNumber !== cleanAadhaar) {
-      console.log('User already verified with different Aadhaar number');
+      console.log(
+        "❌ [DEBUG] User already verified with different Aadhaar number"
+      );
       return NextResponse.json(
-        { error: 'User is already verified with a different Aadhaar number' },
+        { error: "User is already verified with a different Aadhaar number" },
         { status: 400 }
       );
     }
 
     // Check if Aadhaar number is already used by another user
-    const existingUser = await prisma.user.findUnique({
-      where: { aadhaarNumber: cleanAadhaar },
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        aadhaarNumber: cleanAadhaar,
+        id: { not: userId },
+      },
     });
 
-    if (existingUser && existingUser.id !== userId) {
+    if (existingUser) {
+      console.log("❌ [DEBUG] Aadhaar already used by another user");
       return NextResponse.json(
-        { error: 'This Aadhaar number is already registered with another account' },
+        {
+          error:
+            "This Aadhaar number is already registered with another account",
+        },
         { status: 400 }
       );
     }
 
-    // Verify with DigiLocker API
-    const verificationResult = await verifyAadhaarWithDigiLocker(cleanAadhaar);
+    // For development/testing, simulate successful verification
+    console.log(
+      "🎭 [DEBUG] Simulating successful verification (development mode)"
+    );
 
-    if (verificationResult.status !== 'success') {
-      return NextResponse.json(
-        { error: 'Aadhaar verification failed. Please check your number and try again.' },
-        { status: 400 }
-      );
-    }
-
-    // Update user with Aadhaar information (only if not already set)
-    if (!user.aadhaarNumber) {
-      console.log('Updating user with Aadhaar information for first time');
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          aadhaarNumber: cleanAadhaar,
-          isAadhaarVerified: true,
-          // Optionally update name if provided by DigiLocker
-          ...(verificationResult.data?.name && !user.name && { name: verificationResult.data.name }),
+    // Update user with Aadhaar information
+    console.log("📝 [DEBUG] Updating user with Aadhaar information");
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        aadhaarNumber: cleanAadhaar,
+        isAadhaarVerified: true,
+        totalPunyaPoints: {
+          increment: 100, // Award 100 points for verification
         },
-      });
-    } else if (user.aadhaarNumber === cleanAadhaar && !user.isAadhaarVerified) {
-      console.log('User has Aadhaar number but not verified, updating verification status');
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          isAadhaarVerified: true,
-          // Optionally update name if provided by DigiLocker
-          ...(verificationResult.data?.name && !user.name && { name: verificationResult.data.name }),
-        },
-      });
-    } else {
-      console.log('User already has this Aadhaar number and is verified, skipping update');
-    }
-
-    // Award points for completing verification (only if not already awarded)
-    const verificationAction = await prisma.action.findUnique({
-      where: { action_name: 'aadhaar_verification' },
+      },
     });
 
-    let pointsEarned = 0;
-    if (verificationAction && !user.isAadhaarVerified) {
-      console.log('Awarding points for verification');
-      
-      // Check if user already has this verification action
+    console.log("✅ [DEBUG] User updated successfully with verification");
+
+    // Create verification action record
+    try {
+      // Find or create verification action
+      let verificationAction = await prisma.action.findFirst({
+        where: { action_name: "aadhaar_verification" },
+      });
+
+      if (!verificationAction) {
+        verificationAction = await prisma.action.create({
+          data: {
+            action_name: "aadhaar_verification",
+            point_value: 100,
+          },
+        });
+        console.log("✅ [DEBUG] Created verification action");
+      }
+
+      // Check if user already has this action
       const existingAction = await prisma.userAction.findFirst({
         where: {
           userId: userId,
@@ -293,101 +224,124 @@ export async function POST(request: NextRequest) {
           data: {
             userId: userId,
             actionId: verificationAction.id,
+            status: "verified",
           },
         });
-
-        // Update total points
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            totalPunyaPoints: {
-              increment: verificationAction.point_value,
-            },
-          },
-        });
-
-        pointsEarned = verificationAction.point_value;
-        console.log('Points awarded:', pointsEarned);
-      } else {
-        console.log('User already has verification action, no additional points awarded');
+        console.log("✅ [DEBUG] Created user action record");
       }
-    } else {
-      console.log('No points to award - user already verified or action not found');
+    } catch (actionError) {
+      console.warn("⚠️ [DEBUG] Could not create action record:", actionError);
+      // Don't fail the verification if action creation fails
     }
 
-    return NextResponse.json({
+    const response = {
       success: true,
-      message: 'Aadhaar verification successful',
+      message: "Aadhaar verification successful!",
       data: {
         isVerified: true,
-        pointsEarned: pointsEarned,
+        pointsEarned: 100,
       },
+    };
+
+    console.log("📤 [DEBUG] Sending success response:", response);
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("💥 [DEBUG] Aadhaar verification error:", error);
+    console.error("💥 [DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
-  } catch (error) {
-    console.error('Aadhaar verification error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: "Internal server error",
+        message: "An unexpected error occurred during verification",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
 }
 
 export async function GET(request: NextRequest) {
+  console.log("🔥 [DEBUG] GET /api/verify-aadhaar called");
+
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
-    console.log('GET /api/verify-aadhaar called with userId:', userId);
+    console.log("📨 [DEBUG] Request params:", { userId });
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
 
+    // Check database connection
+    if (!prisma) {
+      console.error("❌ [DEBUG] Prisma client not available");
+      return NextResponse.json(
+        {
+          error: "Database connection not available",
+          message: "Please try again later",
+        },
+        { status: 503 }
+      );
+    }
+
+    console.log("🔍 [DEBUG] Finding user:", userId);
     let user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         aadhaarNumber: true,
         isAadhaarVerified: true,
+        totalPunyaPoints: true,
       },
     });
 
     if (!user) {
-      console.log('User not found, creating new user:', userId);
+      console.log("⚠️ [DEBUG] User not found, creating new user:", userId);
       // Create user if doesn't exist
       user = await prisma.user.create({
         data: {
           id: userId,
-          // Don't set phone_number to avoid unique constraint issues
-          name: '', // This can be updated later
+          name: "New User",
+          totalPunyaPoints: 0,
         },
         select: {
           id: true,
           aadhaarNumber: true,
           isAadhaarVerified: true,
+          totalPunyaPoints: true,
         },
       });
+      console.log("✅ [DEBUG] User created:", user.id);
     }
 
-    console.log('User verification status:', {
-      userId: user.id,
-      isVerified: user.isAadhaarVerified,
-      hasAadhaar: !!user.aadhaarNumber,
-    });
-
-    return NextResponse.json({
+    const response = {
       isVerified: user.isAadhaarVerified,
       aadhaarNumber: user.aadhaarNumber,
+      totalPunyaPoints: user.totalPunyaPoints,
+    };
+
+    console.log("📤 [DEBUG] Sending response:", response);
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("💥 [DEBUG] Get verification status error:", error);
+    console.error("💥 [DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
-  } catch (error) {
-    console.error('Get verification status error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: "Internal server error",
+        message: "An unexpected error occurred",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

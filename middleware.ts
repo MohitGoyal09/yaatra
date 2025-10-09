@@ -15,10 +15,12 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export default clerkMiddleware((auth, req) => {
-  // Apply Clerk auth to API routes
-  if (req.nextUrl.pathname.startsWith("/api/")) {
-    auth().protect();
-    return;
+  // Apply Clerk auth to API routes (except SSE endpoints)
+  if (
+    req.nextUrl.pathname.startsWith("/api/") &&
+    !req.nextUrl.pathname.startsWith("/api/map-updates")
+  ) {
+    auth.protect();
   }
   return intlMiddleware(req);
 });

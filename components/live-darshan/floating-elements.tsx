@@ -10,6 +10,7 @@ interface FloatingElement {
   delay: number;
   duration: number;
   size: number;
+  animation?: string;
 }
 
 export function FloatingLeaves() {
@@ -84,7 +85,7 @@ export function DevotionalIcons() {
       {icons.map((icon) => (
         <div
           key={icon.id}
-          className={`${icon.animation} devotional-icon`}
+          className={`${icon.animation || ""} devotional-icon`}
           style={{
             left: `${icon.x}%`,
             top: `${icon.y}%`,

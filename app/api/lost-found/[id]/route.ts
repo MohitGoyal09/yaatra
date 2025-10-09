@@ -9,6 +9,26 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    
+    // Validate ID format
+    if (!id || typeof id !== 'string' || id.length < 10) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Invalid item ID" 
+        }, 
+        { status: 400 }
+      );
+    }
+
+    // Check if Prisma client is available
+    if (!prisma) {
+      return NextResponse.json({
+        success: false,
+        error: "Database not available"
+      }, { status: 503 });
+    }
+
     const item = await prisma.lostFoundItem.findUnique({
       where: { id },
       include: {
@@ -23,7 +43,13 @@ export async function GET(
     });
 
     if (!item) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Item not found" 
+        }, 
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
@@ -33,7 +59,11 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching item:", error);
     return NextResponse.json(
-      { error: "Failed to fetch item" },
+      { 
+        success: false,
+        error: "Failed to fetch item",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
@@ -47,10 +77,53 @@ export async function PUT(
   try {
     const { id } = await params;
     const { userId } = await auth();
+
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Unauthorized. Please sign in to update items." 
+        }, 
+        { status: 401 }
+      );
     }
 
+    // Check if Prisma client is available
+    if (!prisma) {
+      return NextResponse.json({
+        success: false,
+        error: "Database not available"
+      }, { status: 503 });
+    }
+
+    // Find the item first to check ownership
+    const existingItem = await prisma.lostFoundItem.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Item not found" 
+        }, 
+        { status: 404 }
+      );
+    }
+
+    // Check if user is the author or has permission
+    if (existingItem.userId !== userId) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "You can only update your own items" 
+        }, 
+        { status: 403 }
+      );
+    }
+
+    const requestBody = await req.json();
     const {
       type,
       category,
@@ -63,38 +136,51 @@ export async function PUT(
       contactAddress,
       imageUrl,
       status,
-      locationCoordinates,
-    } = await req.json();
+    } = requestBody;
 
-    // Get user identity
-    const clerk = await currentUser();
-    const identityKey =
-      clerk?.primaryEmailAddress?.emailAddress ||
-      clerk?.phoneNumbers?.[0]?.phoneNumber ||
-      userId;
+    // Validation
+    const validationErrors = [];
 
-    const appUser = await prisma.user.findFirst({
-      where: { phone_number: identityKey },
-    });
-
-    if (!appUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (type && !["lost", "found"].includes(type)) {
+      validationErrors.push("Type must be either 'lost' or 'found'");
     }
 
-    // Check if user owns the item
-    const existingItem = await prisma.lostFoundItem.findUnique({
-      where: { id },
-      select: { userId: true },
-    });
-
-    if (!existingItem) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    if (category && !["person", "pet", "item", "document", "other"].includes(category)) {
+      validationErrors.push("Invalid category");
     }
 
-    if (existingItem.userId !== appUser.id) {
+    if (name && (name.trim().length < 2 || name.trim().length > 100)) {
+      validationErrors.push("Name must be between 2 and 100 characters");
+    }
+
+    if (description && (description.trim().length < 10 || description.trim().length > 1000)) {
+      validationErrors.push("Description must be between 10 and 1000 characters");
+    }
+
+    if (location && (location.trim().length < 3 || location.trim().length > 200)) {
+      validationErrors.push("Location must be between 3 and 200 characters");
+    }
+
+    if (contactName && (contactName.trim().length < 2 || contactName.trim().length > 50)) {
+      validationErrors.push("Contact name must be between 2 and 50 characters");
+    }
+
+    if (contactPhone && (contactPhone.trim().length < 10 || contactPhone.trim().length > 20)) {
+      validationErrors.push("Phone number must be between 10 and 20 characters");
+    }
+
+    if (status && !["active", "resolved", "closed"].includes(status)) {
+      validationErrors.push("Status must be active, resolved, or closed");
+    }
+
+    if (validationErrors.length > 0) {
       return NextResponse.json(
-        { error: "Not authorized to update this item" },
-        { status: 403 }
+        { 
+          success: false,
+          error: "Validation failed",
+          details: validationErrors 
+        },
+        { status: 400 }
       );
     }
 
@@ -102,19 +188,18 @@ export async function PUT(
     const updatedItem = await prisma.lostFoundItem.update({
       where: { id },
       data: {
-        type: type || undefined,
-        category: category || undefined,
-        name: name?.trim() || undefined,
-        description: description?.trim() || undefined,
-        location: location?.trim() || undefined,
-        contact_name: contactName?.trim() || undefined,
-        contact_phone: contactPhone?.trim() || undefined,
-        contact_email: contactEmail?.trim() || undefined,
-        contact_address: contactAddress?.trim() || undefined,
-        image_url: imageUrl || undefined,
-        status: status || undefined,
-        location_coordinates: locationCoordinates || undefined,
-        resolved_at: status === "resolved" ? new Date() : undefined,
+        ...(type && { type }),
+        ...(category && { category }),
+        ...(name && { name: name.trim() }),
+        ...(description && { description: description.trim() }),
+        ...(location && { location: location.trim() }),
+        ...(contactName && { contact_name: contactName.trim() }),
+        ...(contactPhone && { contact_phone: contactPhone.trim() }),
+        ...(contactEmail && { contact_email: contactEmail.trim() }),
+        ...(contactAddress && { contact_address: contactAddress.trim() }),
+        ...(imageUrl && { image_url: imageUrl.trim() }),
+        ...(status && { status }),
+        updated_at: new Date(),
       },
       include: {
         user: {
@@ -130,11 +215,16 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       item: updatedItem,
+      message: "Item updated successfully",
     });
   } catch (error) {
     console.error("Error updating item:", error);
     return NextResponse.json(
-      { error: "Failed to update item" },
+      { 
+        success: false,
+        error: "Failed to update item",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
@@ -148,38 +238,47 @@ export async function DELETE(
   try {
     const { id } = await params;
     const { userId } = await auth();
+
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user identity
-    const clerk = await currentUser();
-    const identityKey =
-      clerk?.primaryEmailAddress?.emailAddress ||
-      clerk?.phoneNumbers?.[0]?.phoneNumber ||
-      userId;
-
-    const appUser = await prisma.user.findFirst({
-      where: { phone_number: identityKey },
-    });
-
-    if (!appUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Check if user owns the item
-    const item = await prisma.lostFoundItem.findUnique({
-      where: { id },
-      select: { userId: true },
-    });
-
-    if (!item) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
-    }
-
-    if (item.userId !== appUser.id) {
       return NextResponse.json(
-        { error: "Not authorized to delete this item" },
+        { 
+          success: false,
+          error: "Unauthorized. Please sign in to delete items." 
+        }, 
+        { status: 401 }
+      );
+    }
+
+    // Check if Prisma client is available
+    if (!prisma) {
+      return NextResponse.json({
+        success: false,
+        error: "Database not available"
+      }, { status: 503 });
+    }
+
+    // Find the item first to check ownership
+    const existingItem = await prisma.lostFoundItem.findUnique({
+      where: { id },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "Item not found" 
+        }, 
+        { status: 404 }
+      );
+    }
+
+    // Check if user is the author
+    if (existingItem.userId !== userId) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: "You can only delete your own items" 
+        }, 
         { status: 403 }
       );
     }
@@ -196,7 +295,11 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting item:", error);
     return NextResponse.json(
-      { error: "Failed to delete item" },
+      { 
+        success: false,
+        error: "Failed to delete item",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

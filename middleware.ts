@@ -17,7 +17,8 @@ const intlMiddleware = createIntlMiddleware({
 export default clerkMiddleware((auth, req) => {
   // Apply Clerk auth to API routes
   if (req.nextUrl.pathname.startsWith("/api/")) {
-    return auth();
+    auth().protect();
+    return;
   }
   return intlMiddleware(req);
 });

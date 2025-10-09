@@ -1,181 +1,328 @@
 "use client";
+
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react"; 
+// Removed useTranslations import to fix runtime error
+import {
+  MapIcon,
+  UsersIcon,
+  MessageSquareIcon,
+  BarChart3Icon,
+  CameraIcon,
+  SearchIcon,
+  ShieldIcon,
+  MapPinIcon,
+} from "lucide-react";
+
 import {
   NavigationMenu,
-  NavigationMenuItem, 
+  NavigationMenuContent,
+  NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Icons } from "@/components/ui/icons";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+// import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
-// Define the navigation links once for easy maintenance
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/chat", label: "Sarthi" },
-  { href: "/live-darshan", label: "🕉️ Live Darshan", highlight: true },
-  { href: "/map", label: "Live Karma Map" },
-  { href: "/social", label: "Social Feed" },
-  { href: "/lost-found", label: "Lost & Found" },
+const mainNavItems = [
+  {
+    title: "Map",
+    href: "/map",
+    icon: MapIcon,
+    description: "Interactive map with live updates",
+  },
+  {
+    title: "Social",
+    href: "/social",
+    icon: UsersIcon,
+    description: "Community posts and interactions",
+  },
+  {
+    title: "Chat",
+    href: "/chat",
+    icon: MessageSquareIcon,
+    description: "AI-powered chat assistance",
+  },
+];
+
+const utilityItems = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: BarChart3Icon,
+    description: "Analytics and insights",
+  },
+  {
+    title: "Live Darshan",
+    href: "/live-darshan",
+    icon: CameraIcon,
+    description: "Live temple darshan",
+  },
+  {
+    title: "Lost & Found",
+    href: "/lost-found",
+    icon: SearchIcon,
+    description: "Find lost items",
+  },
 ];
 
 export function AppNavbar() {
-  // State for mobile menu open/close
-  const [isOpen, setIsOpen] = React.useState(false); 
-
-  // Helper component for all the links (used in both desktop and mobile views)
-  const NavLinks = ({ isMobile = false }) => (
-    <NavigationMenuList 
-        // Force the list to stack vertically on mobile (or when isMobile is true)
-        className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row lg:space-x-1'}`}
-    >
-      {navLinks.map((link) => (
-        <NavigationMenuItem key={link.href}>
-          <NavigationMenuLink
-            asChild
-            className={`${navigationMenuTriggerStyle()} ${
-              link.highlight 
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg' 
-                : ''
-            }`}
-            onClick={() => setIsOpen(false)} // Close menu on link click (for mobile)
-          >
-            <Link href={link.href}>{link.label}</Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-      ))}
-    </NavigationMenuList>
-  );
-
-  // Helper component for the user/theme controls
-  const UserControls = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <div
-      className={`flex items-center gap-2 ${
-        isMobile ? "justify-start mt-4" : "" 
-      }`}
-    >
-      <SignedOut>
-        <SignInButton />
-        <SignUpButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <ModeToggle />
-    </div>
-  );
+  // Removed useTranslations usage to fix runtime error
+  const { isSignedIn, user } = useUser();
 
   return (
-    <div className="w-full border-b bg-background sticky top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4">
-        {/* DESKTOP/MOBILE HEADER ROW */}
-        <div className="flex h-14 items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 text-base font-semibold">
-              <Icons.logo className="h-8 w-8" />
-              <span>YaatraSarthi</span>
-            </Link>
-            <NavigationMenu viewport={false}>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/dashboard">Dashboard</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/leaderboard">Leaderboard</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/chat">Sarthi</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/map">Live Karma Map</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/social">Social Feed</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link href="/lost-found">Lost & Found</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Desktop User Controls (Visible on medium/large screens) */}
-            <div className="hidden sm:flex">
-                <UserControls />
-            </div>
-            
-            {/* Mobile Menu Button (Visible only on small screens) */}
-            <button
-              className="lg:hidden p-2 rounded-md hover:bg-muted/50 transition-colors"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle navigation menu"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* MOBILE MENU CONTENT (Dropdown) */}
-        <div
-          className={`lg:hidden transition-all duration-300 overflow-hidden ${
-            isOpen ? "max-h-96 py-4 border-t" : "max-h-0"
-          }`}
+    <nav className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+      {/* Logo */}
+      <div className="flex items-center space-x-3">
+        <Link
+          href="/"
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
         >
-          {/* FIX: Wrap NavLinks in NavigationMenu to satisfy the component requirement.
-            We use 'absolute' and 'w-full' to ensure it renders correctly even though
-            it's not functioning as a traditional desktop menu.
-          */}
-          <NavigationMenu viewport={false} className="w-full">
-            <NavLinks isMobile={true} />
-          </NavigationMenu>
-
-          {/* Mobile User Controls */}
-          <div className="mt-4 pt-4 border-t sm:hidden">
-            <UserControls isMobile={true} />
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="YaatraSarthi Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-        </div>
+          <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            YaatraSarthi
+          </span>
+        </Link>
       </div>
-    </div>
+
+      {/* Main Navigation - Visible Buttons */}
+      <div className="hidden lg:flex items-center space-x-1">
+        {/* Primary Navigation Items */}
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/map" className="flex items-center gap-2 px-3 py-2">
+            <MapIcon className="h-4 w-4" />
+            <span>Map</span>
+          </Link>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/social" className="flex items-center gap-2 px-3 py-2">
+            <UsersIcon className="h-4 w-4" />
+            <span>Social</span>
+          </Link>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/chat" className="flex items-center gap-2 px-3 py-2">
+            <MessageSquareIcon className="h-4 w-4" />
+            <span>Chat</span>
+          </Link>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link
+            href="/live-darshan"
+            className="flex items-center gap-2 px-3 py-2"
+          >
+            <CameraIcon className="h-4 w-4" />
+            <span>Live Darshan</span>
+          </Link>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2">
+            <BarChart3Icon className="h-4 w-4" />
+            <span>Dashboard</span>
+          </Link>
+        </Button>
+
+        {/* Secondary Navigation - Dropdown for additional items */}
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="hover:bg-primary/10 hover:text-primary transition-colors">
+                More
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[300px] gap-2 p-2">
+                  <ListItem
+                    href="/leaderboard"
+                    title="Leaderboard"
+                    icon={SearchIcon}
+                  >
+                    View rankings and achievements
+                  </ListItem>
+                  <ListItem
+                    href="/lost-found"
+                    title="Lost & Found"
+                    icon={SearchIcon}
+                  >
+                    Find lost items and help others
+                  </ListItem>
+                  <ListItem
+                    href="/live-population-map"
+                    title="Live Population"
+                    icon={MapPinIcon}
+                  >
+                    Real-time population density map
+                  </ListItem>
+                  <ListItem
+                    href="/crime-reports"
+                    title="Crime Report"
+                    icon={ShieldIcon}
+                  >
+                    Report and view crime incidents
+                  </ListItem>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+
+      {/* Mobile Navigation - Dropdown for smaller screens */}
+      <div className="lg:hidden">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Menu</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[300px] gap-2">
+                  {[...mainNavItems, ...utilityItems].map((item) => (
+                    <ListItem
+                      key={item.title}
+                      href={item.href}
+                      title={item.title}
+                      icon={item.icon}
+                    >
+                      {item.description}
+                    </ListItem>
+                  ))}
+                  <ListItem
+                    href="/leaderboard"
+                    title="Leaderboard"
+                    icon={SearchIcon}
+                  >
+                    View rankings and achievements
+                  </ListItem>
+                  <ListItem
+                    href="/live-population-map"
+                    title="Live Population"
+                    icon={MapPinIcon}
+                  >
+                    Real-time population density map
+                  </ListItem>
+                  <ListItem
+                    href="/crime-reports"
+                    title="Crime Report"
+                    icon={ShieldIcon}
+                  >
+                    Report and view crime incidents
+                  </ListItem>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+
+      {/* Right Side Controls */}
+      <div className="flex items-center space-x-3">
+        {/* <LanguageSwitcher /> */}
+        <ModeToggle />
+
+        {/* Authentication Buttons */}
+        {isSignedIn ? (
+          <div className="flex items-center space-x-3">
+            <span className="hidden sm:inline text-sm text-muted-foreground">
+              Welcome, {user.firstName || "User"}
+            </span>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                },
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <SignInButton mode="modal">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-primary/10 hover:text-primary transition-colors"
+              >
+                Sign In
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Sign Up
+              </Button>
+            </SignUpButton>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function ListItem({
+  title,
+  children,
+  href,
+  icon: Icon,
+  ...props
+}: React.ComponentPropsWithoutRef<"li"> & {
+  href: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <li {...props}>
+      <NavigationMenuLink asChild>
+        <Link
+          href={href}
+          className="flex items-center space-x-2 p-3 rounded-md hover:bg-accent"
+        >
+          {Icon && <Icon className="h-4 w-4" />}
+          <div>
+            <div className="text-sm leading-none font-medium">{title}</div>
+            <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+              {children}
+            </p>
+          </div>
+        </Link>
+      </NavigationMenuLink>
+    </li>
   );
 }

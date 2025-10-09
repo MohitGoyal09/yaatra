@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
@@ -11,7 +12,9 @@ import {
   Map,
   Camera,
   QrCode,
-  MapPin, Trophy, Target, 
+  MapPin,
+  Trophy,
+  Target,
   Clock,
   Users,
   Zap,
@@ -25,7 +28,6 @@ import { OpenStreetMap } from "@/components/map/openstreet-map";
 import { Progress } from "@/components/ui/progress";
 import { DonutChart } from "@/components/ui/donut-chart";
 import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
-
 
 interface DashboardClientProps {
   user: any;
@@ -56,6 +58,7 @@ interface DashboardClientProps {
     fill: string;
   }>;
   totalPoints: number;
+  isDatabaseAvailable: boolean;
 }
 
 const DashboardClient = ({
@@ -67,7 +70,8 @@ const DashboardClient = ({
   rankTitle,
   nextRankInfo,
   chartData,
-  totalPoints
+  totalPoints,
+  isDatabaseAvailable,
 }: DashboardClientProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -312,12 +316,17 @@ const DashboardClient = ({
               </div>
             </div>
             <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-4 border border-border hover:from-orange-600 hover:to-red-600 transition-all duration-300 cursor-pointer shadow-lg">
-              <Link href="/claim-karma" className="flex items-center gap-3 text-white">
+              <Link
+                href="/claim-karma"
+                className="flex items-center gap-3 text-white"
+              >
                 <div className="bg-white/20 p-2 rounded-full">
                   <Award className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium opacity-90">Ready to Claim</p>
+                  <p className="text-sm font-medium opacity-90">
+                    Ready to Claim
+                  </p>
                   <p className="text-lg font-bold">Karma Points</p>
                 </div>
                 <ChevronRight className="w-5 h-5 opacity-75" />
@@ -361,6 +370,7 @@ const DashboardClient = ({
                         idx === currentSlide ? "bg-white" : "bg-white/50"
                       }`}
                       title={`Go to slide ${idx + 1}`}
+                      aria-label={`Go to slide ${idx + 1}`}
                     />
                   ))}
                 </div>
@@ -405,17 +415,34 @@ const DashboardClient = ({
         <div className="bg-card rounded-lg shadow-lg overflow-hidden mb-8">
           <div className="relative h-96">
             {carouselImages.map((img, idx) => (
-              <img key={idx} src={img} alt={`Slide ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentSlide ? 'opacity-100' : 'opacity-0'}`} />
+              <img
+                key={idx}
+                src={img}
+                alt={`Slide ${idx + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                  idx === currentSlide ? "opacity-100" : "opacity-0"
+                }`}
+              />
             ))}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
               <div className="p-8 text-white">
-                <h2 className="text-3xl font-bold mb-2">Experience Divine Journey</h2>
+                <h2 className="text-3xl font-bold mb-2">
+                  Experience Divine Journey
+                </h2>
                 <p className="text-lg">Your spiritual companion in Ujjain</p>
               </div>
             </div>
             <div className="absolute bottom-4 right-4 flex space-x-2">
               {carouselImages.map((_, idx) => (
-                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full ${idx === currentSlide ? 'bg-white' : 'bg-white/50'}`} />
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`w-3 h-3 rounded-full ${
+                    idx === currentSlide ? "bg-white" : "bg-white/50"
+                  }`}
+                  title={`Go to slide ${idx + 1}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -424,8 +451,13 @@ const DashboardClient = ({
         {/* Additional Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {statsCards.slice(3).map((stat: any, idx: number) => (
-            <div key={idx + 3} className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}>
-              <h3 className="text-sm font-semibold mb-2 opacity-90">{stat.title}</h3>
+            <div
+              key={idx + 3}
+              className={`${stat.color} text-white rounded-lg shadow-lg p-6 transform hover:scale-105 transition`}
+            >
+              <h3 className="text-sm font-semibold mb-2 opacity-90">
+                {stat.title}
+              </h3>
               <p className="text-3xl font-bold">{stat.value}</p>
             </div>
           ))}
@@ -662,9 +694,6 @@ const DashboardClient = ({
             </div>
           </div>
         </div>
-
-
-        
       </main>
 
       {/* Footer */}

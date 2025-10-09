@@ -14,8 +14,17 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId: authUserId } = await auth();
-    const clerk = await currentUser();
+    let authUserId: string | null = null;
+    let clerk = null;
+
+    try {
+      const authResult = await auth();
+      authUserId = authResult.userId;
+      clerk = await currentUser();
+    } catch (authError) {
+      console.warn("Authentication failed, proceeding as guest:", authError);
+    }
+
     const identityKey =
       clerk?.primaryEmailAddress?.emailAddress ||
       clerk?.phoneNumbers?.[0]?.phoneNumber ||

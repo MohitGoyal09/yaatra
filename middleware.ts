@@ -15,8 +15,12 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export default clerkMiddleware((auth, req) => {
-  if (req.nextUrl.pathname.startsWith("/api/")) {
-    return;
+  // Apply Clerk auth to API routes (except SSE endpoints)
+  if (
+    req.nextUrl.pathname.startsWith("/api/") &&
+    !req.nextUrl.pathname.startsWith("/api/map-updates")
+  ) {
+    auth.protect();
   }
   return intlMiddleware(req);
 });
@@ -25,12 +29,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - Any path containing a dot (e.g., .mp4, .png, .svg). This is the key fix.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
   ],
 };

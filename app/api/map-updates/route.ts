@@ -1,11 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { PrismaClient, Prisma } from "@/app/generated/prisma";
-
-// Alternative Prisma client for debugging
-const directPrisma = new PrismaClient();
+import { Prisma } from "@/app/generated/prisma";
 
 export async function GET(request: NextRequest) {
+  console.log("🔥 SSE /api/map-updates connection started");
+
   // Set up Server-Sent Events headers
   const headers = new Headers({
     "Content-Type": "text/event-stream",
@@ -50,7 +49,7 @@ export async function GET(request: NextRequest) {
             return;
           }
 
-          const prismaClient = prisma.lostFoundItem ? prisma : directPrisma;
+          const prismaClient = prisma;
 
           // Fetch recent lost/found items
           const lostFoundItems = await prismaClient.lostFoundItem.findMany({
@@ -194,6 +193,14 @@ export async function GET(request: NextRequest) {
           request.signal.addEventListener("abort", cleanupKarma);
         } catch (error) {
           console.error("Error fetching real data:", error);
+
+          // Send error message to client
+          const errorMessage = `data: ${JSON.stringify({
+            type: "error",
+            message: "Failed to fetch data from database",
+            error: error instanceof Error ? error.message : "Unknown error",
+          })}\n\n`;
+          safeEnqueue(errorMessage);
 
           // Send some fallback simulated data if database fails
           const sendFallbackData = () => {

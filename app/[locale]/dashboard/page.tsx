@@ -264,6 +264,35 @@ export default async function DashboardPage() {
     points: a.points,
   }));
 
+  // Calculate next rank info
+  const nextRankInfo = {
+    nextRank:
+      totalPoints >= 1000
+        ? "Spiritual Guide"
+        : totalPoints >= 500
+        ? "Devotee"
+        : "Seeker",
+    needed:
+      totalPoints >= 1000
+        ? 0
+        : totalPoints >= 500
+        ? 1000 - totalPoints
+        : 500 - totalPoints,
+    progress:
+      totalPoints >= 1000
+        ? 100
+        : totalPoints >= 500
+        ? ((totalPoints - 500) / 500) * 100
+        : (totalPoints / 500) * 100,
+  };
+
+  // Chart data for service categories
+  const chartData = serviceCategories.map((category, index) => ({
+    category: category.title,
+    value: category.count,
+    fill: category.color.replace("bg-", "hsl(").replace("-500", " 70% 50%)"),
+  }));
+
   const dashboardProps = {
     user,
     achievements,
@@ -271,11 +300,24 @@ export default async function DashboardPage() {
     statsCards,
     recentActivities,
     rankTitle,
-    // nextRankInfo,
-    // chartData,
+    nextRankInfo,
+    chartData,
     totalPoints,
     isDatabaseAvailable: profileRes.success && profileRes.user !== mockUser,
   };
 
-  return <DashboardClient {...dashboardProps} />;
+  return (
+    <DashboardClient
+      user={user}
+      achievements={achievements}
+      serviceCategories={serviceCategories}
+      statsCards={statsCards}
+      recentActivities={recentActivities}
+      rankTitle={rankTitle}
+      nextRankInfo={nextRankInfo}
+      chartData={chartData}
+      totalPoints={totalPoints}
+      isDatabaseAvailable={profileRes.success && profileRes.user !== mockUser}
+    />
+  );
 }

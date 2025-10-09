@@ -154,8 +154,20 @@ function LiveKarmaMapComponent() {
         // Parse incoming data as JSON
         const data = JSON.parse(event.data);
 
-        // Skip connection messages and validate coordinates
-        if (data.type === "connection" || !data.lat || !data.lng) {
+        // Handle different message types
+        if (data.type === "connection") {
+          console.log("SSE connected:", data.message);
+          return;
+        }
+
+        if (data.type === "error") {
+          console.error("SSE server error:", data.message, data.error);
+          return;
+        }
+
+        // Skip messages without coordinates
+        if (!data.lat || !data.lng) {
+          console.warn("SSE message missing coordinates:", data);
           return;
         }
 
@@ -188,7 +200,6 @@ function LiveKarmaMapComponent() {
           description: data.description,
           location: data.location,
           contact_name: data.contact_name,
-          contact_phone: data.contact_phone,
           image_url: data.image_url,
           created_at: data.created_at,
           user_name: data.user_name,
@@ -224,6 +235,18 @@ function LiveKarmaMapComponent() {
     // Handle connection errors
     eventSource.onerror = (error) => {
       console.error("SSE connection error:", error);
+      console.log("EventSource readyState:", eventSource.readyState);
+
+      // Try to reconnect after a delay if connection failed
+      if (eventSource.readyState === EventSource.CLOSED) {
+        console.log("SSE connection closed, will attempt to reconnect...");
+        setTimeout(() => {
+          if (eventSource.readyState === EventSource.CLOSED) {
+            console.log("Attempting to reconnect SSE...");
+            // The useEffect will run again and create a new connection
+          }
+        }, 5000);
+      }
     };
 
     // Cleanup function to close EventSource on unmount

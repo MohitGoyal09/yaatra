@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AppNavbar } from "@/components/ui/app-navbar";
 import { VapiWidgetComponent } from "@/components/vapi-widget";
 import { SocialShareProvider } from "@/components/social/social-share-provider";
+import { PostSignupVerificationProvider } from "@/components/verification/post-signup-verification-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,26 +41,28 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <SocialShareProvider>
-              <div className="min-h-screen">
-                <AppNavbar />
-                <main>{children}</main>
+              <PostSignupVerificationProvider>
+                <div className="min-h-screen">
+                  <AppNavbar />
+                  <main>{children}</main>
 
-                {/* Vapi Widget - will only render if environment variables are set */}
-                <VapiWidgetComponent
-                  publicKey={process.env.NEXT_PUBLIC_VAPI_API_KEY || ""}
-                  assistantId={process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""}
-                  mode="chat"
-                  theme="light"
-                  position="bottom-right"
-                  size="full"
-                  accentColor="#14B8A6"
-                  buttonBaseColor="#000000"
-                  buttonAccentColor="#FFFFFF"
-                  mainLabel="Talk with Sarthi"
-                  emptyChatMessage="Namaste! I'm Sarthi, your spiritual journey companion. How can I help you explore Ujjain today?"
-                  emptyVoiceMessage="Click to start a voice conversation with your spiritual guide"
-                />
-              </div>
+                  {/* Vapi Widget - will only render if environment variables are set */}
+                  <VapiWidgetComponent
+                    publicKey={process.env.NEXT_PUBLIC_VAPI_API_KEY || ""}
+                    assistantId={process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""}
+                    mode="chat"
+                    theme="light"
+                    position="bottom-right"
+                    size="full"
+                    accentColor="#14B8A6"
+                    buttonBaseColor="#000000"
+                    buttonAccentColor="#FFFFFF"
+                    mainLabel="Talk with Sarthi"
+                    emptyChatMessage="Namaste! I'm Sarthi, your spiritual journey companion. How can I help you explore Ujjain today?"
+                    emptyVoiceMessage="Click to start a voice conversation with your spiritual guide"
+                  />
+                </div>
+              </PostSignupVerificationProvider>
             </SocialShareProvider>
           </ThemeProvider>
         </body>

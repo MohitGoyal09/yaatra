@@ -11,7 +11,7 @@ import {
   Map,
   Camera,
   QrCode,
-  MapPin, Trophy, Target, Trophy, Target,
+  MapPin, Trophy, Target, 
   Clock,
   Users,
   Zap,
@@ -25,9 +25,7 @@ import { OpenStreetMap } from "@/components/map/openstreet-map";
 import { Progress } from "@/components/ui/progress";
 import { DonutChart } from "@/components/ui/donut-chart";
 import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
-import { Progress } from "@/components/ui/progress";
-import { DonutChart } from "@/components/ui/donut-chart";
-import { LeaderboardSnapshot } from "@/components/leaderboard/snapshot";
+
 
 interface DashboardClientProps {
   user: any;

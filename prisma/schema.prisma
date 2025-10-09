@@ -131,6 +131,7 @@ model LostFoundItem {
   updated_at           DateTime  @updatedAt
   resolved_at          DateTime?
   location_coordinates Json? // Store lat/lng if available
+ 
 
   @@index([type, status])
   @@index([category])

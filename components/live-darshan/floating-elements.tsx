@@ -10,7 +10,6 @@ interface FloatingElement {
   delay: number;
   duration: number;
   size: number;
-  animation?: string;
 }
 
 export function FloatingLeaves() {

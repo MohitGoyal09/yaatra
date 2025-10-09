@@ -1,10 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import {
-  validateUjjainLocation,
-  getLocationValidationMessage,
-} from "@/lib/location-utils";
 
 // GET - Fetch lost and found items
 export async function GET(req: NextRequest) {
@@ -190,8 +186,6 @@ export async function POST(req: NextRequest) {
       imageUrl,
       locationData,
       locationCoordinates,
-      userLatitude,
-      userLongitude,
     } = requestBody;
 
     if (!userId) {
@@ -223,19 +217,6 @@ export async function POST(req: NextRequest) {
       console.log("❌ Missing required fields");
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    // Validate user location is required
-    if (!userLatitude || !userLongitude) {
-      console.log("❌ User location coordinates are required");
-      return NextResponse.json(
-        {
-          error:
-            "User location is required. Please enable location services and try again.",
-          code: "LOCATION_REQUIRED",
-        },
         { status: 400 }
       );
     }
@@ -296,33 +277,6 @@ export async function POST(req: NextRequest) {
     if (!validCategories.includes(category)) {
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
-
-    // Validate user is in Ujjain
-    console.log("📍 Validating user location:", {
-      userLatitude,
-      userLongitude,
-    });
-    const locationValidation = validateUjjainLocation(
-      userLatitude,
-      userLongitude
-    );
-
-    if (!locationValidation.isValid) {
-      console.log("❌ Location validation failed:", locationValidation.reason);
-      return NextResponse.json(
-        {
-          error: `Location validation failed: ${locationValidation.reason}. Please ensure you are in Ujjain to post lost/found items.`,
-          code: "LOCATION_INVALID",
-          details: locationValidation.reason,
-        },
-        { status: 403 }
-      );
-    }
-
-    console.log(
-      "✅ Location validated successfully:",
-      getLocationValidationMessage(userLatitude, userLongitude)
-    );
 
     // Ensure app user exists
     console.log("🔍 Getting current user from Clerk...");
@@ -422,11 +376,6 @@ export async function POST(req: NextRequest) {
       success: true,
       item,
       pointsAwarded: LOST_FOUND_POINTS,
-      locationValidated: true,
-      locationMessage: getLocationValidationMessage(
-        userLatitude,
-        userLongitude
-      ),
     };
 
     return NextResponse.json(response);

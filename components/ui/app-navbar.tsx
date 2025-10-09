@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 // import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 const mainNavItems = [
@@ -71,85 +72,141 @@ const utilityItems = [
 
 export function AppNavbar() {
   // Removed useTranslations usage to fix runtime error
+  const { isSignedIn, user } = useUser();
 
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       {/* Logo */}
-      <div className="flex items-center space-x-2">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">Y</span>
+      <div className="flex items-center space-x-3">
+        <Link
+          href="/"
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+        >
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="YaatraSarthi Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <span className="font-bold text-lg">Yaatra</span>
+          <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            YaatraSarthi
+          </span>
         </Link>
       </div>
 
       {/* Main Navigation - Visible Buttons */}
-      <div className="hidden md:flex items-center space-x-1">
+      <div className="hidden lg:flex items-center space-x-1">
         {/* Primary Navigation Items */}
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/map" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/map" className="flex items-center gap-2 px-3 py-2">
             <MapIcon className="h-4 w-4" />
             <span>Map</span>
           </Link>
         </Button>
 
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/social" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/social" className="flex items-center gap-2 px-3 py-2">
             <UsersIcon className="h-4 w-4" />
             <span>Social</span>
           </Link>
         </Button>
 
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/chat" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/chat" className="flex items-center gap-2 px-3 py-2">
             <MessageSquareIcon className="h-4 w-4" />
             <span>Chat</span>
           </Link>
         </Button>
 
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/live-darshan" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link
+            href="/live-darshan"
+            className="flex items-center gap-2 px-3 py-2"
+          >
             <CameraIcon className="h-4 w-4" />
             <span>Live Darshan</span>
           </Link>
         </Button>
 
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
+          <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2">
             <BarChart3Icon className="h-4 w-4" />
             <span>Dashboard</span>
           </Link>
         </Button>
 
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/leaderboard" className="flex items-center gap-2">
-            <SearchIcon className="h-4 w-4" />
-            <span>Leaderboard</span>
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/lost-found" className="flex items-center gap-2">
-            <SearchIcon className="h-4 w-4" />
-            <span>Lost & Found</span>
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/live-population-map" className="flex items-center gap-2">
-            <MapPinIcon className="h-4 w-4" />
-            <span>Live Population</span>
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/crime-reports" className="flex items-center gap-2">
-            <ShieldIcon className="h-4 w-4" />
-            <span>Crime Report</span>
-          </Link>
-        </Button>
+        {/* Secondary Navigation - Dropdown for additional items */}
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="hover:bg-primary/10 hover:text-primary transition-colors">
+                More
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[300px] gap-2 p-2">
+                  <ListItem
+                    href="/leaderboard"
+                    title="Leaderboard"
+                    icon={SearchIcon}
+                  >
+                    View rankings and achievements
+                  </ListItem>
+                  <ListItem
+                    href="/lost-found"
+                    title="Lost & Found"
+                    icon={SearchIcon}
+                  >
+                    Find lost items and help others
+                  </ListItem>
+                  <ListItem
+                    href="/live-population-map"
+                    title="Live Population"
+                    icon={MapPinIcon}
+                  >
+                    Real-time population density map
+                  </ListItem>
+                  <ListItem
+                    href="/crime-reports"
+                    title="Crime Report"
+                    icon={ShieldIcon}
+                  >
+                    Report and view crime incidents
+                  </ListItem>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
 
       {/* Mobile Navigation - Dropdown for smaller screens */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
@@ -195,11 +252,48 @@ export function AppNavbar() {
       </div>
 
       {/* Right Side Controls */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         {/* <LanguageSwitcher /> */}
         <ModeToggle />
+
+        {/* Authentication Buttons */}
+        {isSignedIn ? (
+          <div className="flex items-center space-x-3">
+            <span className="hidden sm:inline text-sm text-muted-foreground">
+              Welcome, {user.firstName || "User"}
+            </span>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                },
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <SignInButton mode="modal">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-primary/10 hover:text-primary transition-colors"
+              >
+                Sign In
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Sign Up
+              </Button>
+            </SignUpButton>
+          </div>
+        )}
       </div>
-    </div>
+    </nav>
   );
 }
 

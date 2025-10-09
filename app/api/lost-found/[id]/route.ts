@@ -2,42 +2,181 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
+// Constants
+const VALID_TYPES = ["lost", "found"] as const;
+const VALID_CATEGORIES = [
+  "person",
+  "pet",
+  "item",
+  "document",
+  "other",
+] as const;
+const VALID_STATUSES = ["pending", "active", "resolved", "closed"] as const;
+
+// Helper function to validate input data for updates
+function validateUpdateData(data: any) {
+  const errors: string[] = [];
+
+  // Optional fields with validation
+  if (data.type !== undefined && !VALID_TYPES.includes(data.type)) {
+    errors.push("Type must be either 'lost' or 'found'");
+  }
+
+  if (
+    data.category !== undefined &&
+    !VALID_CATEGORIES.includes(data.category)
+  ) {
+    errors.push("Category must be one of: person, pet, item, document, other");
+  }
+
+  if (data.name !== undefined) {
+    if (
+      typeof data.name !== "string" ||
+      data.name.trim().length < 2 ||
+      data.name.trim().length > 100
+    ) {
+      errors.push("Name must be between 2 and 100 characters");
+    }
+  }
+
+  if (data.description !== undefined) {
+    if (
+      typeof data.description !== "string" ||
+      data.description.trim().length < 10 ||
+      data.description.trim().length > 1000
+    ) {
+      errors.push("Description must be between 10 and 1000 characters");
+    }
+  }
+
+  if (data.location !== undefined) {
+    if (
+      typeof data.location !== "string" ||
+      data.location.trim().length < 3 ||
+      data.location.trim().length > 200
+    ) {
+      errors.push("Location must be between 3 and 200 characters");
+    }
+  }
+
+  if (data.contactName !== undefined) {
+    if (
+      typeof data.contactName !== "string" ||
+      data.contactName.trim().length < 2 ||
+      data.contactName.trim().length > 50
+    ) {
+      errors.push("Contact name must be between 2 and 50 characters");
+    }
+  }
+
+  if (data.contactPhone !== undefined) {
+    if (
+      typeof data.contactPhone !== "string" ||
+      data.contactPhone.trim().length < 10 ||
+      data.contactPhone.trim().length > 20
+    ) {
+      errors.push("Contact phone must be between 10 and 20 characters");
+    } else {
+      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      if (!phoneRegex.test(data.contactPhone.trim())) {
+        errors.push("Please enter a valid phone number");
+      }
+    }
+  }
+
+  if (
+    data.contactEmail !== undefined &&
+    data.contactEmail !== null &&
+    data.contactEmail.trim()
+  ) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.contactEmail.trim())) {
+      errors.push("Please enter a valid email address");
+    }
+  }
+
+  if (
+    data.imageUrl !== undefined &&
+    data.imageUrl !== null &&
+    data.imageUrl.trim()
+  ) {
+    try {
+      new URL(data.imageUrl.trim());
+    } catch {
+      errors.push("Please enter a valid image URL");
+    }
+  }
+
+  return errors;
+}
+
+// Helper function to ensure user exists in database
+async function ensureUserExists(userId: string, clerkUser: any) {
+  console.log("👤 [DEBUG] Ensuring user exists:", userId);
+
+  const identityKey =
+    clerkUser?.primaryEmailAddress?.emailAddress ||
+    clerkUser?.phoneNumbers?.[0]?.phoneNumber ||
+    userId;
+
+  if (!identityKey) {
+    throw new Error("Unable to determine user identity");
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ phone_number: identityKey }, { id: userId }],
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found in database");
+  }
+
+  console.log("✅ [DEBUG] User found:", user.id);
+  return user;
+}
+
 // GET - Fetch a specific lost/found item
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log("🔥 API GET /api/lost-found/[id] called");
+  console.log("🔥 [DEBUG] GET /api/lost-found/[id] called");
+  console.log("🌐 [DEBUG] Request URL:", req.url);
 
   try {
     const { id } = await params;
-    console.log("📋 Item ID:", id);
+    console.log("📋 [DEBUG] Item ID:", id);
 
     // Validate ID format
     if (!id || typeof id !== "string" || id.length < 10) {
-      console.log("❌ Invalid item ID format");
+      console.log("❌ [DEBUG] Invalid item ID format");
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid item ID",
+          error: "Invalid item ID format",
+          message: "Item ID must be at least 10 characters long",
         },
         { status: 400 }
       );
     }
 
-    // Check if Prisma client is available
+    // Check database connection
     if (!prisma) {
-      console.error("❌ Prisma client not available");
+      console.error("❌ [DEBUG] Prisma client not available");
       return NextResponse.json(
         {
           success: false,
-          error: "Database not available",
+          error: "Database connection not available",
+          message: "Please check your database configuration",
         },
         { status: 503 }
       );
     }
 
-    console.log("🔍 Fetching item from database...");
+    console.log("🔍 [DEBUG] Fetching item from database...");
+
     const item = await prisma.lostFoundItem.findUnique({
       where: { id },
       include: {
@@ -52,28 +191,38 @@ export async function GET(
     });
 
     if (!item) {
-      console.log("❌ Item not found");
+      console.log("❌ [DEBUG] Item not found");
       return NextResponse.json(
         {
           success: false,
           error: "Item not found",
+          message: "The requested item does not exist",
         },
         { status: 404 }
       );
     }
 
-    console.log("✅ Item found:", item.name);
-    return NextResponse.json({
+    console.log("✅ [DEBUG] Item found:", item.name);
+
+    const response = {
       success: true,
       item,
-    });
+    };
+
+    console.log("📤 [DEBUG] Sending response");
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("💥 Error fetching item:", error);
+    console.error("💥 [DEBUG] GET /api/lost-found/[id] error:", error);
+    console.error("💥 [DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch item",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: "Internal server error",
+        message: "An unexpected error occurred",
       },
       { status: 500 }
     );
@@ -85,197 +234,50 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log("🔥 API PUT /api/lost-found/[id] called");
+  console.log("🔥 [DEBUG] PUT /api/lost-found/[id] called");
+  console.log("🌐 [DEBUG] Request URL:", req.url);
 
   try {
     const { id } = await params;
-    console.log("📋 Item ID:", id);
+    console.log("📋 [DEBUG] Item ID:", id);
 
+    // Check authentication
     const { userId } = await auth();
-    console.log("👤 User ID from auth:", userId);
-
     if (!userId) {
-      console.log("❌ No user ID - unauthorized");
+      console.log("❌ [DEBUG] No user ID - unauthorized");
       return NextResponse.json(
         {
           success: false,
-          error: "Unauthorized. Please sign in to update items.",
+          error: "Unauthorized",
+          message: "Please sign in to update items",
         },
         { status: 401 }
       );
     }
 
-    // Check if Prisma client is available
+    console.log("👤 [DEBUG] User authenticated:", userId);
+
+    // Check database connection
     if (!prisma) {
-      console.error("❌ Prisma client not available");
+      console.error("❌ [DEBUG] Prisma client not available");
       return NextResponse.json(
         {
           success: false,
-          error: "Database not available",
+          error: "Database connection not available",
+          message: "Please check your database configuration",
         },
         { status: 503 }
       );
     }
 
-    const requestBody = await req.json();
-    console.log("📨 Request body received:", requestBody);
+    // Parse request body
+    const requestData = await req.json();
+    console.log("📨 [DEBUG] Request data:", requestData);
 
-    // Get current user from Clerk to find the app user
-    console.log("🔍 Getting current user from Clerk...");
-    const clerk = await currentUser();
-    const identityKey =
-      clerk?.primaryEmailAddress?.emailAddress ||
-      clerk?.phoneNumbers?.[0]?.phoneNumber ||
-      userId;
-    console.log("🔑 Identity key:", identityKey);
-
-    // Find the app user
-    console.log("👥 Finding app user...");
-    const appUser = await prisma.user.findUnique({
-      where: { phone_number: identityKey },
-    });
-
-    if (!appUser) {
-      console.log("❌ App user not found");
-      return NextResponse.json(
-        {
-          success: false,
-          error: "User not found. Please ensure you have created a profile.",
-        },
-        { status: 404 }
-      );
-    }
-
-    console.log("✅ App user found:", appUser.id);
-
-    // Check if item exists and user owns it
-    console.log("🔍 Finding item to check ownership...");
-    const existingItem = await prisma.lostFoundItem.findUnique({
-      where: { id },
-    });
-
-    if (!existingItem) {
-      console.log("❌ Item not found");
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Item not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    // Check if user is the author
-    console.log(
-      "🔐 Checking ownership - Item userId:",
-      existingItem.userId,
-      "App userId:",
-      appUser.id
-    );
-    if (existingItem.userId !== appUser.id) {
-      console.log("❌ User not authorized to update this item");
-      return NextResponse.json(
-        {
-          success: false,
-          error: "You can only update your own items",
-        },
-        { status: 403 }
-      );
-    }
-
-    // Extract and validate request data
-    const {
-      type,
-      category,
-      name,
-      description,
-      location,
-      contactName,
-      contactPhone,
-      contactEmail,
-      contactAddress,
-      imageUrl,
-      locationData,
-      locationCoordinates,
-    } = requestBody;
-
-    // Enhanced input validation
-    const validationErrors = [];
-
-    // Required fields validation
-    if (type && !["lost", "found"].includes(type)) {
-      validationErrors.push("Type must be either 'lost' or 'found'");
-    }
-
-    if (
-      category &&
-      !["person", "pet", "item", "document", "other"].includes(category)
-    ) {
-      validationErrors.push("Please select a valid category");
-    }
-
-    if (name && (name.trim().length < 2 || name.trim().length > 100)) {
-      validationErrors.push("Name must be between 2 and 100 characters");
-    }
-
-    if (
-      description &&
-      (description.trim().length < 10 || description.trim().length > 1000)
-    ) {
-      validationErrors.push(
-        "Description must be between 10 and 1000 characters"
-      );
-    }
-
-    if (
-      location &&
-      (location.trim().length < 3 || location.trim().length > 200)
-    ) {
-      validationErrors.push("Location must be between 3 and 200 characters");
-    }
-
-    if (
-      contactName &&
-      (contactName.trim().length < 2 || contactName.trim().length > 50)
-    ) {
-      validationErrors.push("Contact name must be between 2 and 50 characters");
-    }
-
-    if (
-      contactPhone &&
-      (contactPhone.trim().length < 10 || contactPhone.trim().length > 20)
-    ) {
-      validationErrors.push(
-        "Phone number must be between 10 and 20 characters"
-      );
-    }
-
-    // Phone number format validation
-    if (contactPhone) {
-      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-      if (!phoneRegex.test(contactPhone.trim())) {
-        validationErrors.push("Please enter a valid phone number");
-      }
-    }
-
-    // Email validation (if provided)
-    if (contactEmail && contactEmail.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(contactEmail.trim())) {
-        validationErrors.push("Please enter a valid email address");
-      }
-    }
-
-    // Image URL validation (if provided)
-    if (imageUrl && imageUrl.trim()) {
-      try {
-        new URL(imageUrl.trim());
-      } catch {
-        validationErrors.push("Please enter a valid image URL");
-      }
-    }
-
+    // Validate input data
+    const validationErrors = validateUpdateData(requestData);
     if (validationErrors.length > 0) {
+      console.log("❌ [DEBUG] Validation errors:", validationErrors);
       return NextResponse.json(
         {
           success: false,
@@ -286,27 +288,75 @@ export async function PUT(
       );
     }
 
+    // Get current user from Clerk
+    const clerkUser = await currentUser();
+    const user = await ensureUserExists(userId, clerkUser);
+
+    // Check if item exists and user owns it
+    console.log("🔍 [DEBUG] Finding item to check ownership...");
+    const existingItem = await prisma.lostFoundItem.findUnique({
+      where: { id },
+    });
+
+    if (!existingItem) {
+      console.log("❌ [DEBUG] Item not found");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Item not found",
+          message: "The requested item does not exist",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check ownership
+    console.log(
+      "🔐 [DEBUG] Checking ownership - Item userId:",
+      existingItem.userId,
+      "App userId:",
+      user.id
+    );
+    if (existingItem.userId !== user.id) {
+      console.log("❌ [DEBUG] User not authorized to update this item");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Forbidden",
+          message: "You can only update your own items",
+        },
+        { status: 403 }
+      );
+    }
+
     // Build update data object (only include provided fields)
     const updateData: any = {};
-    if (type) updateData.type = type;
-    if (category) updateData.category = category;
-    if (name) updateData.name = name.trim();
-    if (description) updateData.description = description.trim();
-    if (location) updateData.location = location.trim();
-    if (contactName) updateData.contact_name = contactName.trim();
-    if (contactPhone) updateData.contact_phone = contactPhone.trim();
-    if (contactEmail !== undefined)
-      updateData.contact_email = contactEmail?.trim() || null;
-    if (contactAddress !== undefined)
-      updateData.contact_address = contactAddress?.trim() || null;
-    if (imageUrl !== undefined) updateData.image_url = imageUrl?.trim() || null;
-    if (locationCoordinates !== undefined)
-      updateData.location_coordinates = locationCoordinates;
+    if (requestData.type !== undefined) updateData.type = requestData.type;
+    if (requestData.category !== undefined)
+      updateData.category = requestData.category;
+    if (requestData.name !== undefined)
+      updateData.name = requestData.name.trim();
+    if (requestData.description !== undefined)
+      updateData.description = requestData.description.trim();
+    if (requestData.location !== undefined)
+      updateData.location = requestData.location.trim();
+    if (requestData.contactName !== undefined)
+      updateData.contact_name = requestData.contactName.trim();
+    if (requestData.contactPhone !== undefined)
+      updateData.contact_phone = requestData.contactPhone.trim();
+    if (requestData.contactEmail !== undefined)
+      updateData.contact_email = requestData.contactEmail?.trim() || null;
+    if (requestData.contactAddress !== undefined)
+      updateData.contact_address = requestData.contactAddress?.trim() || null;
+    if (requestData.imageUrl !== undefined)
+      updateData.image_url = requestData.imageUrl?.trim() || null;
+    if (requestData.locationCoordinates !== undefined)
+      updateData.location_coordinates = requestData.locationCoordinates;
 
-    console.log("📝 Update data:", updateData);
+    console.log("📝 [DEBUG] Update data:", updateData);
 
     // Update the item
-    console.log("📝 Updating item...");
+    console.log("📝 [DEBUG] Updating item...");
     const updatedItem = await prisma.lostFoundItem.update({
       where: { id },
       data: updateData,
@@ -321,36 +371,56 @@ export async function PUT(
       },
     });
 
-    console.log("✅ Item updated successfully");
-    return NextResponse.json({
+    console.log("✅ [DEBUG] Item updated successfully");
+
+    const response = {
       success: true,
       item: updatedItem,
       message: "Item updated successfully",
-    });
-  } catch (error) {
-    console.error("💥 Error updating item:", error);
+    };
 
-    // Handle specific validation errors
-    if (
-      error instanceof Error &&
-      (error.message.includes("validation") ||
-        error.message.includes("constraint"))
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid data provided",
-          details: "Please check your input and try again",
-        },
-        { status: 400 }
-      );
+    console.log("📤 [DEBUG] Sending response");
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("💥 [DEBUG] PUT /api/lost-found/[id] error:", error);
+    console.error("💥 [DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (
+        error.message.includes("validation") ||
+        error.message.includes("constraint")
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid data provided",
+            message: "Please check your input and try again",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (error.message.includes("User not found")) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User not found",
+            message: "Please ensure you have created a profile",
+          },
+          { status: 404 }
+        );
+      }
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update item",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: "Internal server error",
+        message: "An unexpected error occurred",
       },
       { status: 500 }
     );
@@ -362,123 +432,124 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log("🔥 [DEBUG] API DELETE /api/lost-found/[id] called");
+  console.log("🔥 [DEBUG] DELETE /api/lost-found/[id] called");
   console.log("🌐 [DEBUG] Request URL:", req.url);
-  console.log(
-    "📋 [DEBUG] Request headers:",
-    Object.fromEntries(req.headers.entries())
-  );
 
   try {
     const { id } = await params;
     console.log("📋 [DEBUG] Item ID:", id);
 
+    // Check authentication
     const { userId } = await auth();
-    console.log("👤 [DEBUG] User ID from auth:", userId);
-
     if (!userId) {
       console.log("❌ [DEBUG] No user ID - unauthorized");
       return NextResponse.json(
         {
           success: false,
-          error: "Unauthorized. Please sign in to delete items.",
+          error: "Unauthorized",
+          message: "Please sign in to delete items",
         },
         { status: 401 }
       );
     }
 
-    // Check if Prisma client is available
+    console.log("👤 [DEBUG] User authenticated:", userId);
+
+    // Check database connection
     if (!prisma) {
-      console.error("❌ Prisma client not available");
+      console.error("❌ [DEBUG] Prisma client not available");
       return NextResponse.json(
         {
           success: false,
-          error: "Database not available",
+          error: "Database connection not available",
+          message: "Please check your database configuration",
         },
         { status: 503 }
       );
     }
 
-    // Get current user from Clerk to find the app user
-    console.log("🔍 Getting current user from Clerk...");
-    const clerk = await currentUser();
-    const identityKey =
-      clerk?.primaryEmailAddress?.emailAddress ||
-      clerk?.phoneNumbers?.[0]?.phoneNumber ||
-      userId;
-    console.log("🔑 Identity key:", identityKey);
+    // Get current user from Clerk
+    const clerkUser = await currentUser();
+    const user = await ensureUserExists(userId, clerkUser);
 
-    // Find the app user
-    console.log("👥 Finding app user...");
-    const appUser = await prisma.user.findUnique({
-      where: { phone_number: identityKey },
-    });
-
-    if (!appUser) {
-      console.log("❌ App user not found");
-      return NextResponse.json(
-        {
-          success: false,
-          error: "User not found. Please ensure you have created a profile.",
-        },
-        { status: 404 }
-      );
-    }
-
-    console.log("✅ App user found:", appUser.id);
-
-    console.log("🔍 Finding item to check ownership...");
+    // Check if item exists and user owns it
+    console.log("🔍 [DEBUG] Finding item to check ownership...");
     const existingItem = await prisma.lostFoundItem.findUnique({
       where: { id },
     });
 
     if (!existingItem) {
-      console.log("❌ Item not found");
+      console.log("❌ [DEBUG] Item not found");
       return NextResponse.json(
         {
           success: false,
           error: "Item not found",
+          message: "The requested item does not exist",
         },
         { status: 404 }
       );
     }
 
-    // Check if user is the author
+    // Check ownership
     console.log(
-      "🔐 Checking ownership - Item userId:",
+      "🔐 [DEBUG] Checking ownership - Item userId:",
       existingItem.userId,
       "App userId:",
-      appUser.id
+      user.id
     );
-    if (existingItem.userId !== appUser.id) {
-      console.log("❌ User not authorized to delete this item");
+    if (existingItem.userId !== user.id) {
+      console.log("❌ [DEBUG] User not authorized to delete this item");
       return NextResponse.json(
         {
           success: false,
-          error: "You can only delete your own items",
+          error: "Forbidden",
+          message: "You can only delete your own items",
         },
         { status: 403 }
       );
     }
 
     // Delete the item
-    console.log("🗑️ Deleting item...");
+    console.log("🗑️ [DEBUG] Deleting item...");
     await prisma.lostFoundItem.delete({
       where: { id },
     });
 
-    console.log("✅ Item deleted successfully");
-    return NextResponse.json({
+    console.log("✅ [DEBUG] Item deleted successfully");
+
+    const response = {
       success: true,
       message: "Item deleted successfully",
-    });
+    };
+
+    console.log("📤 [DEBUG] Sending response");
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("💥 Error deleting item:", error);
+    console.error("💥 [DEBUG] DELETE /api/lost-found/[id] error:", error);
+    console.error("💥 [DEBUG] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.message.includes("User not found")) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User not found",
+            message: "Please ensure you have created a profile",
+          },
+          { status: 404 }
+        );
+      }
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to delete item",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: "Internal server error",
+        message: "An unexpected error occurred",
       },
       { status: 500 }
     );

@@ -304,8 +304,103 @@ export const config = {
 
 ### Protected API Endpoints (Authentication Required)
 
-- `/api/lost-found/*` - Lost and found functionality
+- `/api/lost-found/*` - Lost and found functionality (GET is public, POST/PUT/DELETE require auth)
 - `/api/crime-reports/*` - Crime reporting
 - `/api/admin/*` - Admin functionality
 - `/api/social/*` - Social features
 - All other API routes
+
+## 🔄 Lost-Found API Routes Rewritten
+
+### Complete Rewrite Overview
+
+The lost-found API routes have been completely rewritten with improved:
+
+- **Error handling** with specific error types and messages
+- **Input validation** with comprehensive validation functions
+- **Authentication** with proper user management
+- **Database operations** with transaction support
+- **Debugging** with detailed logging throughout
+
+### Main Route (`/api/lost-found`)
+
+#### GET Method
+
+- **Purpose**: Fetch lost and found items with filtering and pagination
+- **Authentication**: Not required (public access)
+- **Features**:
+  - Pagination support (page, limit parameters)
+  - Filtering by type, category, location, search
+  - Status filtering (only shows pending/active items)
+  - Comprehensive error handling
+  - Database timeout protection
+
+#### POST Method
+
+- **Purpose**: Create new lost and found items
+- **Authentication**: Required
+- **Features**:
+  - Complete input validation
+  - User authentication and database user creation
+  - Points awarding system (10 points per item)
+  - Transaction-based database operations
+  - Detailed error responses
+
+### Dynamic Route (`/api/lost-found/[id]`)
+
+#### GET Method
+
+- **Purpose**: Fetch specific item by ID
+- **Authentication**: Not required (public access)
+- **Features**:
+  - ID format validation
+  - Item existence checking
+  - User information inclusion
+
+#### PUT Method
+
+- **Purpose**: Update existing item
+- **Authentication**: Required
+- **Features**:
+  - Ownership validation (only item owner can update)
+  - Partial updates (only provided fields are updated)
+  - Input validation for all fields
+  - Comprehensive error handling
+
+#### DELETE Method
+
+- **Purpose**: Delete item
+- **Authentication**: Required
+- **Features**:
+  - Ownership validation (only item owner can delete)
+  - Item existence checking
+  - Clean deletion with proper error handling
+
+### Key Improvements
+
+1. **Better Error Handling**:
+   - Specific error types (validation, authentication, database)
+   - Proper HTTP status codes
+   - Detailed error messages
+   - Timeout protection
+
+2. **Input Validation**:
+   - Comprehensive validation functions
+   - Type checking for all fields
+   - Length and format validation
+   - Optional field handling
+
+3. **User Management**:
+   - Automatic user creation/updating
+   - Identity key resolution from Clerk
+   - Proper user association with items
+
+4. **Database Operations**:
+   - Transaction support for data consistency
+   - Timeout protection
+   - Proper error handling for connection issues
+
+5. **Debugging**:
+   - Comprehensive logging throughout all operations
+   - Request/response tracking
+   - Error details with stack traces

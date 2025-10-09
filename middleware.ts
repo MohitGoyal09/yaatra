@@ -17,23 +17,32 @@ const intlMiddleware = createIntlMiddleware({
 export default clerkMiddleware((auth, req) => {
   console.log("🔍 [MIDDLEWARE] Processing request:", req.nextUrl.pathname);
 
-  // Apply Clerk auth to API routes (except public endpoints)
-  if (
-    req.nextUrl.pathname.startsWith("/api/") &&
-    !req.nextUrl.pathname.startsWith("/api/map-updates") &&
-    !req.nextUrl.pathname.startsWith("/api/chat") &&
-    !req.nextUrl.pathname.startsWith("/api/health") &&
-    !req.nextUrl.pathname.startsWith("/api/test")
-  ) {
-    console.log("🔐 [MIDDLEWARE] Protecting API route:", req.nextUrl.pathname);
-    auth.protect();
-  } else if (req.nextUrl.pathname.startsWith("/api/chat")) {
-    console.log(
-      "✅ [MIDDLEWARE] Allowing chat API without auth:",
-      req.nextUrl.pathname
-    );
+  // Handle API routes separately from page routes
+  if (req.nextUrl.pathname.startsWith("/api/")) {
+    // Apply Clerk auth to API routes (except public endpoints)
+    if (
+      !req.nextUrl.pathname.startsWith("/api/map-updates") &&
+      !req.nextUrl.pathname.startsWith("/api/chat") &&
+      !req.nextUrl.pathname.startsWith("/api/health") &&
+      !req.nextUrl.pathname.startsWith("/api/test")
+    ) {
+      console.log(
+        "🔐 [MIDDLEWARE] Protecting API route:",
+        req.nextUrl.pathname
+      );
+      auth.protect();
+    } else if (req.nextUrl.pathname.startsWith("/api/chat")) {
+      console.log(
+        "✅ [MIDDLEWARE] Allowing chat API without auth:",
+        req.nextUrl.pathname
+      );
+    }
+
+    // For API routes, skip internationalization and return early
+    return;
   }
 
+  // For non-API routes, apply internationalization
   return intlMiddleware(req);
 });
 

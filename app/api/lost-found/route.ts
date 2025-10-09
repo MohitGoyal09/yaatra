@@ -5,6 +5,8 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // GET - Fetch lost and found items
 export async function GET(req: NextRequest) {
   console.log("🔥 API GET /api/lost-found called");
+
+  // Ensure we always return JSON
   try {
     // Check if Prisma client is available
     if (!prisma) {
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
   console.log("🔗 Request URL:", req.url);
   console.log("🔗 Request method:", req.method);
 
+  // Ensure we always return JSON
   try {
     // Check if Prisma client is available
     if (!prisma) {

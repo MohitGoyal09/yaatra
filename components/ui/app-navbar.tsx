@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 // Removed useTranslations import to fix runtime error
 import {
   MapIcon,
@@ -73,9 +74,10 @@ const utilityItems = [
 export function AppNavbar() {
   // Removed useTranslations usage to fix runtime error
   const { isSignedIn, user } = useUser();
+  const pathname = usePathname();
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+    <nav className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-[100] shadow-sm">
       {/* Logo */}
       <div className="flex items-center space-x-3">
         <Link
@@ -102,7 +104,9 @@ export function AppNavbar() {
           variant="ghost"
           size="sm"
           asChild
-          className="hover:bg-primary/10 hover:text-primary transition-colors"
+          className={`hover:bg-primary/10 hover:text-primary transition-colors ${
+            pathname.includes("/map") ? "bg-primary/10 text-primary" : ""
+          }`}
         >
           <Link href="/map" className="flex items-center gap-2 px-3 py-2">
             <MapIcon className="h-4 w-4" />
@@ -162,7 +166,7 @@ export function AppNavbar() {
         </Button>
 
         {/* Secondary Navigation - Dropdown for additional items */}
-        <NavigationMenu>
+        <NavigationMenu className="relative z-[110]">
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuTrigger className="hover:bg-primary/10 hover:text-primary transition-colors">

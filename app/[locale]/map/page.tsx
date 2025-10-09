@@ -143,8 +143,95 @@ function LiveKarmaMapComponent() {
     return null;
   }
 
+  // Add some initial test data to ensure markers show up
+  useEffect(() => {
+    // Add some test karma points to verify map is working with all impact levels
+    const testHotspots: PunyaHotspot[] = [
+      // High Impact Karma (🔥) - intensity >= 80
+      {
+        id: "test-karma-high-1",
+        lat: 23.1793,
+        lng: 75.7873,
+        type: "karma",
+        intensity: 90,
+        action: "Donated blood at hospital",
+        timestamp: new Date().toISOString(),
+      },
+      // High Impact Karma (⚡) - intensity >= 60
+      {
+        id: "test-karma-medium-1",
+        lat: 23.1805,
+        lng: 75.7885,
+        type: "karma",
+        intensity: 70,
+        action: "Volunteered at community center",
+        timestamp: new Date().toISOString(),
+      },
+      // Medium Impact Karma (💚) - intensity >= 40
+      {
+        id: "test-karma-medium-2",
+        lat: 23.178,
+        lng: 75.786,
+        type: "karma",
+        intensity: 50,
+        action: "Helped elderly cross the street",
+        timestamp: new Date().toISOString(),
+      },
+      // Low Impact Karma (✨) - intensity >= 20
+      {
+        id: "test-karma-low-1",
+        lat: 23.181,
+        lng: 75.789,
+        type: "karma",
+        intensity: 30,
+        action: "Cleaned up litter in park",
+        timestamp: new Date().toISOString(),
+      },
+      // Very Low Impact Karma (💫) - intensity < 20
+      {
+        id: "test-karma-very-low-1",
+        lat: 23.1775,
+        lng: 75.7855,
+        type: "karma",
+        intensity: 10,
+        action: "Shared smile with stranger",
+        timestamp: new Date().toISOString(),
+      },
+      {
+        id: "test-lost-1",
+        lat: 23.18,
+        lng: 75.788,
+        type: "lost_found",
+        subtype: "lost",
+        category: "Electronics",
+        name: "Lost Phone",
+        description: "Black smartphone lost near temple area",
+        location: "Near Mahakal Temple",
+        contact_name: "Anonymous",
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: "test-found-1",
+        lat: 23.1785,
+        lng: 75.7865,
+        type: "lost_found",
+        subtype: "found",
+        category: "Documents",
+        name: "Found Wallet",
+        description: "Brown leather wallet found at bus stop",
+        location: "Ujjain Junction",
+        contact_name: "Good Samaritan",
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    console.log("🧪 Adding test hotspots:", testHotspots);
+    setHotspots(testHotspots);
+  }, []);
+
   // Real-time data fetching with Server-Sent Events
   useEffect(() => {
+    console.log("🔥 Setting up SSE connection to /api/map-updates");
     // Create EventSource connection to backend endpoint
     const eventSource = new EventSource("/api/map-updates");
 
@@ -170,6 +257,8 @@ function LiveKarmaMapComponent() {
           console.warn("SSE message missing coordinates:", data);
           return;
         }
+
+        console.log("📡 Received SSE data:", data);
 
         // Validate that lat and lng are valid numbers
         const lat = parseFloat(data.lat);
@@ -225,6 +314,7 @@ function LiveKarmaMapComponent() {
             return updated.slice(-100);
           }
 
+          console.log("✅ Added new hotspot, total count:", updated.length);
           return updated;
         });
       } catch (error) {
@@ -346,19 +436,31 @@ function LiveKarmaMapComponent() {
                 <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
                   🔥
                 </div>
-                <span className="text-gray-600">High Impact</span>
+                <span className="text-gray-600">High Impact (80-100)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
+                  ⚡
+                </div>
+                <span className="text-gray-600">High Impact (60-79)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
                   💚
                 </div>
-                <span className="text-gray-600">Medium Impact</span>
+                <span className="text-gray-600">Medium Impact (40-59)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
                   ✨
                 </div>
-                <span className="text-gray-600">Low Impact</span>
+                <span className="text-gray-600">Low Impact (20-39)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs">
+                  💫
+                </div>
+                <span className="text-gray-600">Very Low Impact (0-19)</span>
               </div>
             </div>
           </div>
@@ -366,6 +468,12 @@ function LiveKarmaMapComponent() {
           <div className="mt-3 pt-3 border-t border-gray-200">
             <p className="text-xs text-gray-600">
               <strong>Total Markers:</strong> {hotspots.length}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Karma: {hotspots.filter((h) => h.type === "karma").length} |
+              Lost/Found:{" "}
+              {hotspots.filter((h) => h.type === "lost_found").length} | Crime:{" "}
+              {hotspots.filter((h) => h.type === "crime").length}
             </p>
             <p className="text-xs text-gray-500 mt-1">
               Click markers for details
@@ -404,11 +512,46 @@ function LiveKarmaMapComponent() {
                 <div className="p-2 max-w-xs">
                   {hotspot.type === "karma" && (
                     <>
-                      <h3 className="font-semibold text-green-600 mb-2">
-                        🌟 Karma Event
+                      <h3 className="font-semibold text-green-600 mb-2 flex items-center gap-2">
+                        {hotspot.intensity && hotspot.intensity >= 80 && "🔥"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 60 &&
+                          hotspot.intensity < 80 &&
+                          "⚡"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 40 &&
+                          hotspot.intensity < 60 &&
+                          "💚"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 20 &&
+                          hotspot.intensity < 40 &&
+                          "✨"}
+                        {hotspot.intensity && hotspot.intensity < 20 && "💫"}
+                        Karma Event
                       </h3>
                       <p className="text-sm mb-1">
                         <strong>Action:</strong> {hotspot.action}
+                      </p>
+                      <p className="text-sm mb-1">
+                        <strong>Impact Level:</strong>{" "}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 80 &&
+                          "High Impact 🔥"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 60 &&
+                          hotspot.intensity < 80 &&
+                          "High Impact ⚡"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 40 &&
+                          hotspot.intensity < 60 &&
+                          "Medium Impact 💚"}
+                        {hotspot.intensity &&
+                          hotspot.intensity >= 20 &&
+                          hotspot.intensity < 40 &&
+                          "Low Impact ✨"}
+                        {hotspot.intensity &&
+                          hotspot.intensity < 20 &&
+                          "Very Low Impact 💫"}
                       </p>
                       <p className="text-sm mb-1">
                         <strong>Intensity:</strong> {hotspot.intensity}/100
@@ -444,8 +587,7 @@ function LiveKarmaMapComponent() {
                         {hotspot.description?.substring(0, 100)}...
                       </p>
                       <p className="text-sm mb-1">
-                        <strong>Contact:</strong> {hotspot.contact_name} -{" "}
-                        {hotspot.contact_phone}
+                        <strong>Contact:</strong> {hotspot.contact_name}
                       </p>
                       <p className="text-xs text-gray-500">
                         {hotspot.created_at &&
@@ -481,8 +623,7 @@ function LiveKarmaMapComponent() {
                       </p>
                       {!hotspot.is_anonymous && (
                         <p className="text-sm mb-1">
-                          <strong>Contact:</strong> {hotspot.contact_name} -{" "}
-                          {hotspot.contact_phone}
+                          <strong>Contact:</strong> {hotspot.contact_name}
                         </p>
                       )}
                       <p className="text-xs text-gray-500">

@@ -188,7 +188,6 @@ function LiveKarmaMapComponent() {
           description: data.description,
           location: data.location,
           contact_name: data.contact_name,
-          contact_phone: data.contact_phone,
           image_url: data.image_url,
           created_at: data.created_at,
           user_name: data.user_name,

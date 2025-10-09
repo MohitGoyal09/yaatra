@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error("Database query timeout")), 10000);
     });
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
   console.log("🔥 API POST /api/lost-found called");
   console.log("🔗 Request URL:", req.url);
   console.log("🔗 Request method:", req.method);
+
   try {
     // Check if Prisma client is available
     if (!prisma) {
@@ -168,6 +170,7 @@ export async function POST(req: NextRequest) {
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error("Database query timeout")), 15000);
     });
+
     const { userId } = await auth();
     console.log("👤 User ID from auth:", userId);
 
@@ -369,8 +372,6 @@ export async function POST(req: NextRequest) {
       contact_address: contactAddress?.trim() || null,
       image_url: imageUrl || null,
       location_coordinates: locationCoordinates || null,
-      user_latitude: userLatitude,
-      user_longitude: userLongitude,
     });
 
     // Create item and update points with timeout
@@ -392,7 +393,6 @@ export async function POST(req: NextRequest) {
             contact_address: contactAddress?.trim() || null,
             image_url: imageUrl || null,
             location_coordinates: locationCoordinates || null,
-          
           },
           include: {
             user: {

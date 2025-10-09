@@ -59,6 +59,7 @@ interface DashboardClientProps {
     fill: string;
   }>;
   totalPoints: number;
+  isDatabaseAvailable: boolean;
 }
 
 const DashboardClient = ({
@@ -71,6 +72,7 @@ const DashboardClient = ({
   nextRankInfo,
   chartData,
   totalPoints,
+  isDatabaseAvailable,
 }: DashboardClientProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
